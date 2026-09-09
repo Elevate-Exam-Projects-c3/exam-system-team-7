@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using exam_system.Features.Identity.Register.Commands;
+using exam_system.Features.Identity.Register.Notifications;
 using exam_system.Features.Identity.Shared;
 using exam_system.Features.Shared;
 using exam_system.Persistence.DataAccess;
