@@ -25,4 +25,12 @@ public class AuthController : ControllerBase
         var response = await _mediator.Send(command, cancellationToken);
         return StatusCode(response.StatusCode, response);
     }
+
+    // POST /api/auth/verify-otp — body: { email, code } (EXAM-104)
+    [HttpPost("verify-otp")]
+    public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpCommand command, CancellationToken cancellationToken)
+    {
+        var response = await _mediator.Send(command, cancellationToken);
+        return StatusCode(response.StatusCode, response);
+    }
 }
