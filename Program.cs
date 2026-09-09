@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using exam_system.Common.Middleware;
 using exam_system.Domain.Entities.Diplomas;
 using exam_system.Features.Identity.Register.Commands;
+using exam_system.Features.Identity.Shared;
 using exam_system.Features.Shared;
 using exam_system.Persistence;
 using exam_system.Persistence.Context;
@@ -26,6 +27,10 @@ builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
 // MediatR pipeline: run ValidationBehavior before every Handler (fail fast).
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+
+// Password hashing: one Singleton instance is enough — the hasher keeps no
+// state and BCrypt is thread-safe, so the same instance can serve all requests.
+builder.Services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
 
 var app = builder.Build();
 
@@ -107,6 +112,38 @@ app.MapPost("/api/test/register-validation", async (RegisterUserCommand command,
 })
 .WithName("TestRegisterValidation")
 .WithTags("Test");
+// TEMPORARY test endpoint — proves the hashing service end-to-end.
+// WARNING: showing a hash in a response is acceptable ONLY while learning in
+// development — real endpoints must never return or log hashes. EXAM-103
+// deletes this together with the register-validation endpoint above.
+// Dev-only shortcut: the password arrives as a query parameter to keep this
+// throwaway endpoint tiny. Real endpoints take secrets in the request BODY —
+// URLs end up in server logs and browser history.
+app.MapPost("/api/test/password-hash", (string password, IPasswordHasher hasher) =>
+{
+    var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+    var hash = hasher.Hash(password);
+    stopwatch.Stop();
+
+    return Results.Ok(new
+    {
+        Hash = hash,
+        // A bcrypt hash is self-contained: version + work factor + salt + digest.
+        Parts = new
+        {
+            Version = hash.Substring(0, 4),    // e.g. "$2a$" — bcrypt variant
+            WorkFactor = hash.Substring(4, 2), // e.g. "12" — read back on Verify
+            Salt = hash.Substring(7, 22),      // random 22 chars — new on every Hash
+            Digest = hash.Substring(29)        // the fingerprint (31 chars)
+        },
+        ElapsedMs = stopwatch.ElapsedMilliseconds,
+        VerifySamePassword = hasher.Verify(password, hash),
+        VerifyDifferentPassword = hasher.Verify("wrong-password", hash)
+    });
+})
+.WithName("TestPasswordHash")
+.WithTags("Test");
+
 
 app.MapControllers();
 
