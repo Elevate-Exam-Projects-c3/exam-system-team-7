@@ -4,9 +4,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using exam_system.Common.Middleware;
 using exam_system.Domain.Entities.Diplomas;
-using exam_system.Features.Identity.Register.Commands;
 using exam_system.Features.Identity.Shared;
-using exam_system.Features.Shared;
 using exam_system.Persistence;
 using exam_system.Persistence.Context;
 using exam_system.Persistence.DataAccess;
@@ -32,7 +30,23 @@ builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBeh
 // state and BCrypt is thread-safe, so the same instance can serve all requests.
 builder.Services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
 
+// EXAM-103 services: OTP generation (crypto-random) and email delivery.
+// Both are stateless, so Singleton is enough. Feature code only knows the
+// IEmailSender interface — the console sender (DevEmailSender) can be
+// swapped back for offline development without touching any handler.
+builder.Services.AddSingleton<IOtpGenerator, RandomOtpGenerator>();
+
+// Real SMTP delivery (MailKit). Settings live in the "Smtp" section of
+// appsettings.Development.json (Gmail: smtp.gmail.com:587 + app password).
+builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection(SmtpOptions.SectionName));
+builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();
+
 var app = builder.Build();
+
+// Global exception handling: ValidationException -> 400 with field-mapped
+// errors, anything else -> 500 without leaking details. Replaces the inline
+// catch that used to live in the temporary test endpoint.
+app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
 // Seed Database automatically on startup
 using (var scope = app.Services.CreateScope())
@@ -88,62 +102,6 @@ app.MapGet("/api/test/diplomas", async (IGenericRepository<Diploma> diplomaRepo,
 })
 .WithName("GetTestDiplomas")
 .WithTags("Test");
-
-// TEMPORARY test endpoint — proves the MediatR validation pipeline end-to-end.
-// Send bad input -> 400 with field errors (validator blocked the Handler).
-// Send valid input  -> 200 "Validation passed - Handler reached."
-// EXAM-103 replaces this with the real POST /api/auth/register controller.
-app.MapPost("/api/test/register-validation", async (RegisterUserCommand command, IMediator mediator) =>
-{
-    try
-    {
-        var response = await mediator.Send(command);
-        return Results.Json(response, statusCode: response.StatusCode);
-    }
-    catch (ValidationException ex)
-    {
-        var errors = ex.Errors
-            .GroupBy(e => e.PropertyName)
-            .ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).ToArray());
-
-        var body = RequestResponse<object>.Fail("One or more validation errors occurred.", 400, errors);
-        return Results.Json(body, statusCode: 400);
-    }
-})
-.WithName("TestRegisterValidation")
-.WithTags("Test");
-// TEMPORARY test endpoint — proves the hashing service end-to-end.
-// WARNING: showing a hash in a response is acceptable ONLY while learning in
-// development — real endpoints must never return or log hashes. EXAM-103
-// deletes this together with the register-validation endpoint above.
-// Dev-only shortcut: the password arrives as a query parameter to keep this
-// throwaway endpoint tiny. Real endpoints take secrets in the request BODY —
-// URLs end up in server logs and browser history.
-app.MapPost("/api/test/password-hash", (string password, IPasswordHasher hasher) =>
-{
-    var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-    var hash = hasher.Hash(password);
-    stopwatch.Stop();
-
-    return Results.Ok(new
-    {
-        Hash = hash,
-        // A bcrypt hash is self-contained: version + work factor + salt + digest.
-        Parts = new
-        {
-            Version = hash.Substring(0, 4),    // e.g. "$2a$" — bcrypt variant
-            WorkFactor = hash.Substring(4, 2), // e.g. "12" — read back on Verify
-            Salt = hash.Substring(7, 22),      // random 22 chars — new on every Hash
-            Digest = hash.Substring(29)        // the fingerprint (31 chars)
-        },
-        ElapsedMs = stopwatch.ElapsedMilliseconds,
-        VerifySamePassword = hasher.Verify(password, hash),
-        VerifyDifferentPassword = hasher.Verify("wrong-password", hash)
-    });
-})
-.WithName("TestPasswordHash")
-.WithTags("Test");
-
 
 app.MapControllers();
 
