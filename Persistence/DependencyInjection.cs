@@ -1,6 +1,7 @@
-using Microsoft.EntityFrameworkCore;
+using exam_system.Features.Diplomas.AdminDeleteDiploma.Orchestrators;
 using exam_system.Persistence.Context;
 using exam_system.Persistence.DataAccess;
+using Microsoft.EntityFrameworkCore;
 
 namespace exam_system.Persistence;
 
@@ -16,6 +17,9 @@ public static class DependencyInjection
 
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+        //Diplomas
+        services.AddScoped<DeleteDiplomaOrchestrator>();
 
         return services;
     }
