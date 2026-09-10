@@ -1,9 +1,10 @@
+using exam_system.Common.Enums;
+using exam_system.Domain.Entities.Attempts;
+using exam_system.Domain.Entities.Diplomas;
+using exam_system.Domain.Entities.Identity;
+using exam_system.Domain.Entities.Quizzes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using exam_system.Domain.Entities.Identity;
-using exam_system.Domain.Entities.Diplomas;
-using exam_system.Domain.Entities.Quizzes;
-using exam_system.Domain.Entities.Attempts;
 
 namespace exam_system.Persistence.Configurations;
 
@@ -137,6 +138,13 @@ public class QuizConfiguration : IEntityTypeConfiguration<Quiz>
 
         builder.Property(q => q.Title).HasMaxLength(200).IsRequired();
         builder.Property(q => q.Instructions).HasMaxLength(2000);
+        builder.Property(q => q.StartDate).IsRequired();
+        builder.Property(q => q.EndDate).IsRequired();
+        builder.Property(q => q.DurationMinutes).IsRequired();
+        builder.Property(q => q.PassScore).HasDefaultValue(60);
+        builder.Property(q => q.MaxAttempts).IsRequired(false);
+        builder.Property(q => q.Status).IsRequired().HasDefaultValue(QuizStatus.Draft);
+
 
         builder.HasOne(q => q.Diploma)
             .WithMany(d => d.Quizzes)
