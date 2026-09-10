@@ -1,10 +1,13 @@
 ﻿using exam_system.Common.Enums;
+using exam_system.Domain.Entities.Quizzes;
 using exam_system.Dtos.Quizes;
 using exam_system.Features.Quizzes.AdminCreateQuiz.Commands;
+using exam_system.Features.Quizzes.AdminDeleteQuiz.Commands;
 using exam_system.Features.Quizzes.AdminUpdateQuiz.Commands;
 using exam_system.Features.Shared;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Mvc;
 
 namespace exam_system.Features.Quizzes.Controllers {
@@ -84,6 +87,28 @@ namespace exam_system.Features.Quizzes.Controllers {
                     errors: errors
                 ));
             }
+        }
+
+
+        [HttpDelete("{quizId:guid}")]
+        // [Authorize(Roles = nameof(UserRole.Admin))]
+        public async Task<ActionResult<EndpointResponse<bool>>> DeleteQuiz(Guid quizId,CancellationToken cancellationToken) {
+            var deleted = await mediator.Send(new DeleteQuizCommand(quizId),cancellationToken);
+
+            if (!deleted) {
+                return BadRequest(new EndpointResponse<bool>(
+                    success: false,
+                    statusCode: StatusCodes.Status400BadRequest,
+                    message: "Quiz cannot be deleted. It may not exist, may already be deleted, or may still be published.",
+                    data: false
+                ));
+            }
+            return Ok(new EndpointResponse<bool>(
+                success: true,
+                statusCode: StatusCodes.Status200OK,
+                message: "Quiz deleted successfully.",
+                data: true
+            ));
         }
     }
 }
