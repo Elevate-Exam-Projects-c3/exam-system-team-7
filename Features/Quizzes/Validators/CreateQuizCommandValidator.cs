@@ -6,7 +6,7 @@ namespace exam_system.Features.Quizzes.Validators {
 
         public CreateQuizCommandValidator() {
 
-            RuleFor(x => x.CreateQuiz.Title)
+            RuleFor(x => x.Title)
                .NotEmpty()
                .WithMessage("Title is required.")
                .MinimumLength(3)
@@ -14,26 +14,26 @@ namespace exam_system.Features.Quizzes.Validators {
                .MaximumLength(200)
                .WithMessage("Title must not exceed 200 characters.");
 
-            RuleFor(x => x.CreateQuiz.DurationMinutes)
+            RuleFor(x => x.DurationMinutes)
                 .GreaterThan(0)
                 .WithMessage("DurationMinutes must be greater than 0.");
 
-            RuleFor(x => x.CreateQuiz.PassScore)
+            RuleFor(x => x.PassScore)
                 .InclusiveBetween(0, 100)
-                .When(x => x.CreateQuiz.PassScore.HasValue)
+                .When(x => x.PassScore.HasValue)
                 .WithMessage("PassScore must be between 0 and 100.");
 
-            RuleFor(x => x.CreateQuiz.MaxAttempts)
+            RuleFor(x => x.MaxAttempts)
                 .GreaterThan(0)
-                .When(x => x.CreateQuiz.MaxAttempts.HasValue)
+                .When(x => x.MaxAttempts.HasValue)
                 .WithMessage("MaxAttempts must be greater than 0.");
 
-            RuleFor(x => x.CreateQuiz.StartDate)
+            RuleFor(x => x.StartDate)
                  .Must(startDate => startDate.Date >= DateTime.UtcNow.Date)
                  .WithMessage("StartDate must be today or a future date.");
 
-            RuleFor(x => x.CreateQuiz.EndDate)
-                .GreaterThanOrEqualTo(x => x.CreateQuiz.StartDate)
+            RuleFor(x => x.EndDate)
+                .GreaterThanOrEqualTo(x => x.StartDate)
                 .WithMessage("EndDate must be greater than or equal to StartDate.");
         }
     }

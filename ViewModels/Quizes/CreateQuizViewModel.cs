@@ -1,5 +1,5 @@
-﻿namespace exam_system.Dtos.Quizes {
-    public class CreateQuizDto {
+﻿namespace exam_system.ViewModels.Quizes {
+    public class CreateQuizViewModel {
 
         public Guid DiplomaId { get; set; }
 

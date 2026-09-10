@@ -1,11 +1,12 @@
 ﻿using exam_system.Common.Enums;
 using exam_system.Domain.Entities.Quizzes;
 using exam_system.Features.Quizzes.AdminCreateQuiz.Commands;
+using exam_system.Features.Shared;
 using exam_system.Persistence.DataAccess;
 using MediatR;
 
 namespace exam_system.Features.Quizzes.AdminCreateQuiz.Handlers {
-    public class CreateQuizCommandHandler : IRequestHandler<CreateQuizCommand, Guid> {
+    public class CreateQuizCommandHandler : IRequestHandler<CreateQuizCommand, RequestResponse<Guid>> {
 
 
         private readonly IGenericRepository<Quiz> quizRepository; 
@@ -14,31 +15,34 @@ namespace exam_system.Features.Quizzes.AdminCreateQuiz.Handlers {
             this.quizRepository = quizRepository;
             this.unitOfWork = unitOfWork;
         }
-        public async Task<Guid> Handle(CreateQuizCommand request, CancellationToken cancellationToken) {
 
+       async Task<RequestResponse<Guid>> IRequestHandler<CreateQuizCommand, RequestResponse<Guid>>.Handle(CreateQuizCommand request, CancellationToken cancellationToken) {
             var quiz = new Quiz {
 
-                DiplomaId = request.CreateQuiz.DiplomaId,
-                Title = request.CreateQuiz.Title.Trim(),
+                DiplomaId = request.DiplomaId,
 
-                Instructions = request.CreateQuiz.Instructions,
+                Title = request.Title.Trim(),
 
-                DurationMinutes = request.CreateQuiz.DurationMinutes,
-                PassScore = request.CreateQuiz.PassScore ?? 60,
+                Instructions = request.Instructions,
 
-                MaxAttempts = request.CreateQuiz.MaxAttempts,
+                DurationMinutes = request.DurationMinutes,
+
+                PassScore = request.PassScore ?? 60,
+
+                MaxAttempts = request.MaxAttempts,
 
                 Status = QuizStatus.Draft,
 
-                StartDate = request.CreateQuiz.StartDate,
+                StartDate = request.StartDate,
 
-                EndDate = request.CreateQuiz.EndDate
+                EndDate = request.EndDate
             };
 
             await quizRepository.AddAsync(quiz);
+
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return quiz.Id;
+            return RequestResponse<Guid>.Created(quiz.Id,"Quiz created successfully.");
         }
     }
 }

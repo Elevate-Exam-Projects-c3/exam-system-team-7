@@ -7,30 +7,30 @@ namespace exam_system.Features.Quizzes.Validators {
         public UpdateQuizCommandValidator() {
 
 
-            RuleFor(x => x.UpdateQuiz.Title)
+            RuleFor(x => x.Title)
                 .MinimumLength(3)
                 .MaximumLength(200)
-                .When(x => x.UpdateQuiz.Title != null);
+                .When(x => x.Title != null);
 
-            RuleFor(x => x.UpdateQuiz.DurationMinutes)
+            RuleFor(x => x.DurationMinutes)
                 .GreaterThan(0)
-                .When(x => x.UpdateQuiz.DurationMinutes.HasValue);
+                .When(x => x.DurationMinutes.HasValue);
 
-            RuleFor(x => x.UpdateQuiz.PassScore)
+            RuleFor(x => x.PassScore)
                 .InclusiveBetween(0, 100)
-                .When(x => x.UpdateQuiz.PassScore.HasValue);
+                .When(x => x.PassScore.HasValue);
 
-            RuleFor(x => x.UpdateQuiz.MaxAttempts)
+            RuleFor(x => x.MaxAttempts)
                 .GreaterThan(0)
-                .When(x => x.UpdateQuiz.MaxAttempts.HasValue);
+                .When(x => x.MaxAttempts.HasValue);
 
 
-            RuleFor(x => x.UpdateQuiz.StartDate)
-        .Must(startDate => startDate.Date >= DateTime.UtcNow.Date)
+            RuleFor(x => x.StartDate)
+        .Must(startDate => startDate >= DateTime.UtcNow.Date)
         .WithMessage("StartDate must be today or a future date.");
 
-            RuleFor(x => x.UpdateQuiz.EndDate)
-                .GreaterThanOrEqualTo(x => x.UpdateQuiz.StartDate)
+            RuleFor(x => x.EndDate)
+                .GreaterThanOrEqualTo(x => x.StartDate)
                 .WithMessage("EndDate must be greater than or equal to StartDate.");
         }
     }
