@@ -19,13 +19,10 @@ namespace exam_system.Features.Diplomas.Controllers
     public class DiplomasController : ControllerBase
     {
         private readonly IMediator _mediator;
-        private readonly DeleteDiplomaOrchestrator _deleteDiplomaOrchestrator;
 
-        public DiplomasController(IMediator mediator,
-                                  DeleteDiplomaOrchestrator deleteDiplomaOrchestrator)
+        public DiplomasController(IMediator mediator)
         {
             _mediator = mediator;
-            _deleteDiplomaOrchestrator = deleteDiplomaOrchestrator;
         }
 
         [HttpPost]
@@ -64,7 +61,7 @@ namespace exam_system.Features.Diplomas.Controllers
         //[Authorize(Roles = nameof(UserRole.Admin))]
         public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
         {
-            var result = await _deleteDiplomaOrchestrator.ExecuteAsync(id, cancellationToken);
+            var result = await _mediator.Send(new DeleteDiplomaOrchestrator(id), cancellationToken);
 
             var response = EndpointResponse<bool>.FromResult(result);
 

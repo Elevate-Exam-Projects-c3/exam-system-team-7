@@ -18,8 +18,6 @@ public static class DependencyInjection
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-        //Diplomas
-        services.AddScoped<DeleteDiplomaOrchestrator>();
 
         return services;
     }
