@@ -12,5 +12,4 @@ namespace exam_system.Features.Diplomas.AdminDeleteDiploma.Orchestrators
         Guid DiplomaId
     ) : IRequest<RequestResponse<bool>>;
 
-
 }
