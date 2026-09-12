@@ -33,4 +33,12 @@ public class AuthController : ControllerBase
         var response = await _mediator.Send(command, cancellationToken);
         return StatusCode(response.StatusCode, response);
     }
+
+    // POST /api/auth/resend-otp — body: { email } (EXAM-2 internal subtask)
+    [HttpPost("resend-otp")]
+    public async Task<IActionResult> ResendOtp([FromBody] ResendOtpCommand command, CancellationToken cancellationToken)
+    {
+        var response = await _mediator.Send(command, cancellationToken);
+        return StatusCode(response.StatusCode, response);
+    }
 }
