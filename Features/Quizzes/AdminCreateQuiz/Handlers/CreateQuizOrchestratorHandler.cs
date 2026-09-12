@@ -15,10 +15,10 @@ namespace exam_system.Features.Quizzes.AdminCreateQuiz.Handlers {
         }
         public async Task<RequestResponse<bool>> Handle(CreateQuizOrchestrator request, CancellationToken cancellationToken) {
 
-            var diploma =  await mediator.Send(new GetDiplomaByIdQuery(request.DiplomaId));
+            var diploma =  await mediator.Send(new CheckIfDiplomaExistQuery(request.DiplomaId));
 
-            if (diploma == null)
-                 throw new KeyNotFoundException($"Diploma with ID {request.DiplomaId} not found.");
+            if (!diploma.Data)
+                    throw new KeyNotFoundException($"Diploma with ID {request.DiplomaId} not found.");
 
            var result =  await mediator.Send(new CreateQuizCommand(
                 request.DiplomaId,
