@@ -14,6 +14,7 @@ namespace exam_system.Features.Diplomas.AdminDeleteDiploma.Handlers
     {
         private readonly IMediator _mediator;
 
+
         public DeleteDiplomaOrchestratorHandler(IMediator mediator)
         {
             _mediator = mediator;
