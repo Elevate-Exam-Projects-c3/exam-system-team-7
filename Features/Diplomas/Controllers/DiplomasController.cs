@@ -7,6 +7,7 @@ using exam_system.Features.Diplomas.AdminDeleteDiploma.Orchestrators;
 using exam_system.Features.Diplomas.AdminUpdateDiploma.Commands;
 using exam_system.Features.Diplomas.GetDiplomaDetail.Queries;
 using exam_system.Features.Shared;
+using exam_system.ViewModels.Diplomas.Mappers;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -27,10 +28,10 @@ namespace exam_system.Features.Diplomas.Controllers
 
         [HttpPost]
         //[Authorize(Roles = nameof(UserRole.Admin))]
-        public async Task<IActionResult> Create([FromBody] CreateDiplomaDto request,CancellationToken cancellationToken)
+        public async Task<IActionResult> Create([FromBody] CreateDiplomaVM request,CancellationToken cancellationToken)
         {
             var result = await _mediator.Send(
-                new CreateDiplomaCommand(request),
+                new CreateDiplomaCommand(request.ToDto()),
                 cancellationToken);
 
             var response = EndpointResponse<bool>.FromResult(result);
@@ -43,10 +44,10 @@ namespace exam_system.Features.Diplomas.Controllers
 
         [HttpPut("{id:guid}")]
         //[Authorize(Roles = nameof(UserRole.Admin))]
-        public async Task<IActionResult> Update(Guid id,[FromBody] UpdateDiplomaDto request,CancellationToken cancellationToken)
+        public async Task<IActionResult> Update(Guid id,[FromBody] UpdateDiplomaVM request,CancellationToken cancellationToken)
         {
             var result = await _mediator.Send(
-                new UpdateDiplomaCommand(id, request),
+                new UpdateDiplomaCommand(id, request.ToDto()),
                 cancellationToken);
 
             var response = EndpointResponse<bool>.FromResult(result);
