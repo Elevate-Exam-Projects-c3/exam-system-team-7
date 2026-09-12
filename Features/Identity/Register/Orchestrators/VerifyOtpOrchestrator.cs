@@ -7,16 +7,17 @@ using exam_system.Persistence.DataAccess;
 
 namespace exam_system.Features.Identity.Register.Orchestrators;
 
-// EXAM-104 — Orchestrator pattern again: verify-otp touches TWO aggregates
-// (the OtpCodes row and the ApplicationUser), so coordination lives here:
+// EXAM-104 + EXAM-105 — Orchestrator pattern: verify-otp touches TWO
+// aggregates (the OtpCodes row and the ApplicationUser), so coordination
+// lives here:
 //   1. READ: the most recently issued unused OTP for the email,
 //   2. GATES in order: exists? locked? expired (DISTINCT message)? hash match?
 //   3. ONE transaction: consume the OTP + activate the user.
-// Wrong-code AttemptCount increment is EXAM-105 (next step).
+// EXAM-105: a WRONG code sends RecordWrongOtpAttemptCommand (single-object
+// increment) BEFORE answering; once the counter reaches 5 the locked message
+// replaces the generic one. Expired/locked/missing attempts do NOT count.
 public class VerifyOtpOrchestrator : IRequestHandler<VerifyOtpCommand, RequestResponse<Guid>>
 {
-    // EXAM-105 will own the incrementing logic; the lock CHECK is part of
-    // EXAM-104 ("non-locked OtpCodes row"), so the gate is ready.
     private const int MaxAttempts = 5;
 
     private readonly IMediator _mediator;
@@ -56,7 +57,8 @@ public class VerifyOtpOrchestrator : IRequestHandler<VerifyOtpCommand, RequestRe
             return InvalidCode();
         }
 
-        // Gate 2 — locked (EXAM-105 will increment; the check is already here).
+        // Gate 2 — already locked by previous submissions (no further
+        // counting: the counter is already at the limit).
         if (otp.AttemptCount >= MaxAttempts)
         {
             return RequestResponse<Guid>.Fail(
@@ -74,9 +76,24 @@ public class VerifyOtpOrchestrator : IRequestHandler<VerifyOtpCommand, RequestRe
         }
 
         // Gate 4 — hash comparison with the same bcrypt service that hashed
-        // it at registration. A wrong code is a GENERIC failure.
+        // it at registration. A wrong code FIRST counts as an attempt
+        // (EXAM-105: every wrong submission increments AttemptCount via its
+        // own single-object Command), THEN we answer: locked message once the
+        // counter reaches 5, generic message before that. Expired/locked/
+        // missing attempts never reach this gate, so they never count.
         if (!_passwordHasher.Verify(request.Code, otp.OtpHash))
         {
+            var attemptResult = await _mediator.Send(
+                new RecordWrongOtpAttemptCommand(otp.Id),
+                cancellationToken);
+
+            if (attemptResult.Data >= MaxAttempts)
+            {
+                return RequestResponse<Guid>.Fail(
+                    "Code locked after too many attempts. Please request a new one.",
+                    400);
+            }
+
             return InvalidCode();
         }
 

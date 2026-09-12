@@ -7,7 +7,7 @@ using exam_system.Persistence.DataAccess;
 
 namespace exam_system.Features.Identity.Register.Handlers;
 
-// Single responsibility: activate ONE ApplicationUser — EmailConfirmed=true
+// activate one ApplicationUser — EmailConfirmed=true
 // and AccountStatus=Active (EXAM-104 success path).
 public class ActivateUserCommandHandler
     : IRequestHandler<ActivateUserCommand, RequestResponse<Guid>>

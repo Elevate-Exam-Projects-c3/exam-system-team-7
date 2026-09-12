@@ -6,14 +6,16 @@ using exam_system.Persistence.DataAccess;
 
 namespace exam_system.Features.Identity.Register.Handlers;
 
-//flip ONE OtpCodes row to IsUsed=true.
-public class ConsumeEmailVerificationOtpCommandHandler
-    : IRequestHandler<ConsumeEmailVerificationOtpCommand, RequestResponse<Guid>>
+// Single responsibility: ONE OtpCodes row's AttemptCount +1, persisted.
+// Pure mechanics — no business decisions here: whether the counter reaching
+// the limit means a locked message is the Orchestrator's call.
+public class RecordWrongOtpAttemptCommandHandler
+    : IRequestHandler<RecordWrongOtpAttemptCommand, RequestResponse<int>>
 {
     private readonly IGenericRepository<EmailVerificationOtp> _otps;
     private readonly IUnitOfWork _unitOfWork;
 
-    public ConsumeEmailVerificationOtpCommandHandler(
+    public RecordWrongOtpAttemptCommandHandler(
         IGenericRepository<EmailVerificationOtp> otps,
         IUnitOfWork unitOfWork)
     {
@@ -21,15 +23,17 @@ public class ConsumeEmailVerificationOtpCommandHandler
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<RequestResponse<Guid>> Handle(ConsumeEmailVerificationOtpCommand request, CancellationToken cancellationToken)
+    public async Task<RequestResponse<int>> Handle(RecordWrongOtpAttemptCommand request, CancellationToken cancellationToken)
     {
         var otp = await _otps.GetByIdAsync(request.OtpId)
             ?? throw new InvalidOperationException($"OtpCodes row {request.OtpId} was not found.");
 
-        otp.IsUsed = true;
+        otp.AttemptCount++;
         _otps.Update(otp);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return RequestResponse<Guid>.Ok(otp.Id);
+        // The new count travels back so the Orchestrator can choose between
+        // the locked and the generic message without re-reading the row.
+        return RequestResponse<int>.Ok(otp.AttemptCount);
     }
 }
