@@ -1,5 +1,7 @@
-﻿using exam_system.Dtos.Diploma.CreateDiploma;
+﻿using exam_system.Dtos.Diploma.BrowseDiplomas;
+using exam_system.Dtos.Diploma.CreateDiploma;
 using exam_system.Dtos.Diploma.UpdateDiploma;
+using exam_system.ViewModels.Diplomas.BrowseDiplomas;
 
 namespace exam_system.ViewModels.Diplomas.Mappers
 {
@@ -23,5 +25,27 @@ namespace exam_system.ViewModels.Diplomas.Mappers
             };
         }
 
+        public static BrowseDiplomasDto ToDto(
+            this BrowseDiplomasViewModel viewModel)
+        {
+            return new BrowseDiplomasDto
+            {
+                PageIndex = viewModel.PageIndex,
+                PageSize = viewModel.PageSize
+            };
+        }
+
+
+        public static DiplomaListItemViewModel ToViewModel(this BrowseDiplomaItemDto dto)
+        {
+            return new DiplomaListItemViewModel
+            {
+                Id = dto.Id,
+                Title = dto.Title,
+                Description = dto.Description,
+                TotalQuizzes = dto.TotalQuizzes,
+                CompletedQuizzes = dto.CompletedQuizzes
+            };
+        }
     }
 }
