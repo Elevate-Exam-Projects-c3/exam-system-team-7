@@ -1,5 +1,6 @@
+using exam_system.Common.Validator;
 using exam_system.Domain.Entities.Diplomas;
-using exam_system.Features.Quizzes.Validators;
+using exam_system.Infrastructure.BackgroundJobs;
 using exam_system.Persistence;
 using exam_system.Persistence.Context;
 using exam_system.Persistence.DataAccess;
@@ -19,6 +20,8 @@ builder.Services.AddPersistenceServices(builder.Configuration);
 builder.Services.AddMediatR(typeof(Program).Assembly);
 
 builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+
+builder.Services.AddHostedService<QuizAttemptTimeoutBackgroundService>();
 
 builder.Services.AddTransient(
     typeof(IPipelineBehavior<,>),

@@ -20,6 +20,8 @@ namespace exam_system.Features.Quizzes.AdminCreateQuiz.Handlers {
         async Task<RequestResponse<Guid>> IRequestHandler<CreateQuizCommand, RequestResponse<Guid>>.Handle(CreateQuizCommand request, CancellationToken cancellationToken) {
             var quiz = new Quiz {
 
+                Id= Guid.NewGuid(),
+
                 DiplomaId = request.DiplomaId,
 
                 Title = request.Title.Trim(),
@@ -36,12 +38,20 @@ namespace exam_system.Features.Quizzes.AdminCreateQuiz.Handlers {
 
                 StartDate = request.StartDate,
 
-                EndDate = request.EndDate
+                EndDate = request.EndDate,
+
+                CreatedAt = DateTime.UtcNow,
+               
+                IsDeleted = false
             };
 
             await quizRepository.AddAsync(quiz);
 
-            await unitOfWork.SaveChangesAsync(cancellationToken);
+            var result = await unitOfWork.SaveChangesAsync(cancellationToken);
+
+            if(result <= 0)
+                return RequestResponse<Guid>.Fail("Quiz failed to Carete.");
+
 
             return RequestResponse<Guid>.Created(quiz.Id,"Quiz created successfully.");
         }
