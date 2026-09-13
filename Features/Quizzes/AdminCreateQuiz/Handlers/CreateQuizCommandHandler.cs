@@ -9,14 +9,15 @@ namespace exam_system.Features.Quizzes.AdminCreateQuiz.Handlers {
     public class CreateQuizCommandHandler : IRequestHandler<CreateQuizCommand, RequestResponse<Guid>> {
 
 
-        private readonly IGenericRepository<Quiz> quizRepository; 
-        private readonly IUnitOfWork unitOfWork; 
+        private readonly IGenericRepository<Quiz> quizRepository;
+        private readonly IUnitOfWork unitOfWork;
+
         public CreateQuizCommandHandler(IGenericRepository<Quiz> quizRepository, IUnitOfWork unitOfWork) {
             this.quizRepository = quizRepository;
             this.unitOfWork = unitOfWork;
         }
 
-       async Task<RequestResponse<Guid>> IRequestHandler<CreateQuizCommand, RequestResponse<Guid>>.Handle(CreateQuizCommand request, CancellationToken cancellationToken) {
+        async Task<RequestResponse<Guid>> IRequestHandler<CreateQuizCommand, RequestResponse<Guid>>.Handle(CreateQuizCommand request, CancellationToken cancellationToken) {
             var quiz = new Quiz {
 
                 DiplomaId = request.DiplomaId,
