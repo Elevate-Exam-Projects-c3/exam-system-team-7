@@ -13,131 +13,131 @@ public static class AppDbContextSeed
     {
         try
         {
-            //// 1. Seed Users and Students
-            //if (!await context.Users.AnyAsync())
-            //{
-            //    logger.LogInformation("Seeding Users and Students...");
+            // 1. Seed Users and Students
+            if (!await context.Users.AnyAsync())
+            {
+                logger.LogInformation("Seeding Users and Students...");
 
-            //    var adminUser = new ApplicationUser
-            //    {
-            //        Id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
-            //        FullName = "System Administrator",
-            //        Email = "admin@examsystem.com",
-            //        PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123456", workFactor: 12),
-            //        Role = UserRole.Admin,
-            //        AccountStatus = AccountStatus.Active,
-            //        EmailConfirmed = true,
-            //        CreatedAt = DateTime.UtcNow.AddMonths(-6)
-            //    };
+                var adminUser = new ApplicationUser
+                {
+                    Id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
+                    FullName = "System Administrator",
+                    Email = "admin@examsystem.com",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123456", workFactor: 12),
+                    Role = UserRole.Admin,
+                    AccountStatus = AccountStatus.Active,
+                    EmailConfirmed = true,
+                    CreatedAt = DateTime.UtcNow.AddMonths(-6)
+                };
 
-            //    var studentUser1 = new ApplicationUser
-            //    {
-            //        Id = Guid.Parse("22222222-2222-2222-2222-222222222222"),
-            //        FullName = "John Doe",
-            //        Email = "john.doe@student.com",
-            //        PasswordHash = BCrypt.Net.BCrypt.HashPassword("Student@123456", workFactor: 12),
-            //        Role = UserRole.Student,
-            //        AccountStatus = AccountStatus.Active,
-            //        EmailConfirmed = true,
-            //        CreatedAt = DateTime.UtcNow.AddMonths(-3)
-            //    };
+                var studentUser1 = new ApplicationUser
+                {
+                    Id = Guid.Parse("22222222-2222-2222-2222-222222222222"),
+                    FullName = "John Doe",
+                    Email = "john.doe@student.com",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Student@123456", workFactor: 12),
+                    Role = UserRole.Student,
+                    AccountStatus = AccountStatus.Active,
+                    EmailConfirmed = true,
+                    CreatedAt = DateTime.UtcNow.AddMonths(-3)
+                };
 
-            //    var studentUser2 = new ApplicationUser
-            //    {
-            //        Id = Guid.Parse("33333333-3333-3333-3333-333333333333"),
-            //        FullName = "Sarah Connor",
-            //        Email = "sarah.connor@student.com",
-            //        PasswordHash = BCrypt.Net.BCrypt.HashPassword("Student@123456", workFactor: 12),
-            //        Role = UserRole.Student,
-            //        AccountStatus = AccountStatus.Active,
-            //        EmailConfirmed = true,
-            //        CreatedAt = DateTime.UtcNow.AddMonths(-2)
-            //    };
+                var studentUser2 = new ApplicationUser
+                {
+                    Id = Guid.Parse("33333333-3333-3333-3333-333333333333"),
+                    FullName = "Sarah Connor",
+                    Email = "sarah.connor@student.com",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Student@123456", workFactor: 12),
+                    Role = UserRole.Student,
+                    AccountStatus = AccountStatus.Active,
+                    EmailConfirmed = true,
+                    CreatedAt = DateTime.UtcNow.AddMonths(-2)
+                };
 
-            //    var studentUser3 = new ApplicationUser
-            //    {
-            //        Id = Guid.Parse("44444444-4444-4444-4444-444444444444"),
-            //        FullName = "Alex Mercer",
-            //        Email = "alex.mercer@student.com",
-            //        PasswordHash = BCrypt.Net.BCrypt.HashPassword("Student@123456", workFactor: 12),
-            //        Role = UserRole.Student,
-            //        AccountStatus = AccountStatus.Pending,
-            //        EmailConfirmed = false,
-            //        CreatedAt = DateTime.UtcNow.AddDays(-5)
-            //    };
+                var studentUser3 = new ApplicationUser
+                {
+                    Id = Guid.Parse("44444444-4444-4444-4444-444444444444"),
+                    FullName = "Alex Mercer",
+                    Email = "alex.mercer@student.com",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Student@123456", workFactor: 12),
+                    Role = UserRole.Student,
+                    AccountStatus = AccountStatus.Pending,
+                    EmailConfirmed = false,
+                    CreatedAt = DateTime.UtcNow.AddDays(-5)
+                };
 
-            //    await context.Users.AddRangeAsync(adminUser, studentUser1, studentUser2, studentUser3);
+                await context.Users.AddRangeAsync(adminUser, studentUser1, studentUser2, studentUser3);
 
-            //    var student1 = new Student
-            //    {
-            //        Id = Guid.Parse("aaaaaaaa-1111-1111-1111-aaaaaaaaaaaa"),
-            //        UserId = studentUser1.Id,
-            //        StudentCode = "STU-2026-0001",
-            //        PhoneNumber = "+1234567890",
-            //        CreatedAt = DateTime.UtcNow.AddMonths(-3)
-            //    };
+                var student1 = new Student
+                {
+                    Id = Guid.Parse("aaaaaaaa-1111-1111-1111-aaaaaaaaaaaa"),
+                    UserId = studentUser1.Id,
+                    StudentCode = "STU-2026-0001",
+                    PhoneNumber = "+1234567890",
+                    CreatedAt = DateTime.UtcNow.AddMonths(-3)
+                };
 
-            //    var student2 = new Student
-            //    {
-            //        Id = Guid.Parse("bbbbbbbb-2222-2222-2222-bbbbbbbbbbbb"),
-            //        UserId = studentUser2.Id,
-            //        StudentCode = "STU-2026-0002",
-            //        PhoneNumber = "+1987654321",
-            //        CreatedAt = DateTime.UtcNow.AddMonths(-2)
-            //    };
+                var student2 = new Student
+                {
+                    Id = Guid.Parse("bbbbbbbb-2222-2222-2222-bbbbbbbbbbbb"),
+                    UserId = studentUser2.Id,
+                    StudentCode = "STU-2026-0002",
+                    PhoneNumber = "+1987654321",
+                    CreatedAt = DateTime.UtcNow.AddMonths(-2)
+                };
 
-            //    var student3 = new Student
-            //    {
-            //        Id = Guid.Parse("cccccccc-3333-3333-3333-cccccccccccc"),
-            //        UserId = studentUser3.Id,
-            //        StudentCode = "STU-2026-0003",
-            //        PhoneNumber = "+1122334455",
-            //        CreatedAt = DateTime.UtcNow.AddDays(-5)
-            //    };
+                var student3 = new Student
+                {
+                    Id = Guid.Parse("cccccccc-3333-3333-3333-cccccccccccc"),
+                    UserId = studentUser3.Id,
+                    StudentCode = "STU-2026-0003",
+                    PhoneNumber = "+1122334455",
+                    CreatedAt = DateTime.UtcNow.AddDays(-5)
+                };
 
-            //    await context.Students.AddRangeAsync(student1, student2, student3);
+                await context.Students.AddRangeAsync(student1, student2, student3);
 
-            //    var otp = new EmailVerificationOtp
-            //    {
-            //        Id = Guid.NewGuid(),
-            //        UserId = studentUser3.Id,
-            //        Email = studentUser3.Email,
-            //        OtpHash = BCrypt.Net.BCrypt.HashPassword("123456", workFactor: 12),
-            //        ExpiresAt = DateTime.UtcNow.AddMinutes(10),
-            //        AttemptCount = 0,
-            //        IsUsed = false,
-            //        CreatedAt = DateTime.UtcNow.AddMinutes(-2)
-            //    };
+                var otp = new EmailVerificationOtp
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = studentUser3.Id,
+                    Email = studentUser3.Email,
+                    OtpHash = BCrypt.Net.BCrypt.HashPassword("123456", workFactor: 12),
+                    ExpiresAt = DateTime.UtcNow.AddMinutes(10),
+                    AttemptCount = 0,
+                    IsUsed = false,
+                    CreatedAt = DateTime.UtcNow.AddMinutes(-2)
+                };
 
-            //    var resetOtp = new PasswordResetOtp
-            //    {
-            //        Id = Guid.NewGuid(),
-            //        UserId = studentUser2.Id,
-            //        Email = studentUser2.Email,
-            //        OtpHash = BCrypt.Net.BCrypt.HashPassword("654321", workFactor: 12),
-            //        ExpiresAt = DateTime.UtcNow.AddMinutes(8),
-            //        AttemptCount = 0,
-            //        IsUsed = false,
-            //        CreatedAt = DateTime.UtcNow.AddMinutes(-2)
-            //    };
+                var resetOtp = new PasswordResetOtp
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = studentUser2.Id,
+                    Email = studentUser2.Email,
+                    OtpHash = BCrypt.Net.BCrypt.HashPassword("654321", workFactor: 12),
+                    ExpiresAt = DateTime.UtcNow.AddMinutes(8),
+                    AttemptCount = 0,
+                    IsUsed = false,
+                    CreatedAt = DateTime.UtcNow.AddMinutes(-2)
+                };
 
-            //    var refreshToken = new RefreshToken
-            //    {
-            //        Id = Guid.NewGuid(),
-            //        UserId = studentUser1.Id,
-            //        Token = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N"),
-            //        ExpiresAt = DateTime.UtcNow.AddDays(7),
-            //        IsUsed = false,
-            //        IsRevoked = false,
-            //        CreatedAt = DateTime.UtcNow
-            //    };
+                var refreshToken = new RefreshToken
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = studentUser1.Id,
+                    Token = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N"),
+                    ExpiresAt = DateTime.UtcNow.AddDays(7),
+                    IsUsed = false,
+                    IsRevoked = false,
+                    CreatedAt = DateTime.UtcNow
+                };
 
-            //    await context.EmailVerificationOtps.AddAsync(otp);
-            //    await context.PasswordResetOtps.AddAsync(resetOtp);
-            //    await context.RefreshTokens.AddAsync(refreshToken);
+                await context.EmailVerificationOtps.AddAsync(otp);
+                await context.PasswordResetOtps.AddAsync(resetOtp);
+                await context.RefreshTokens.AddAsync(refreshToken);
 
-            //    await context.SaveChangesAsync();
-            //}
+                await context.SaveChangesAsync();
+            }
 
             // 2. Seed Diplomas
             if (!await context.Diplomas.AnyAsync())

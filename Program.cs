@@ -26,8 +26,7 @@ builder.Services.AddTransient(
     typeof(IPipelineBehavior<,>),
     typeof(ValidationBehavior<,>));
 
-//Adding Identity Service
-builder.Services.AddIdentity<AppUser, IdentityRole>().AddEntityFrameworkStores<AppDbContext>();
+
 var app = builder.Build();
 
 // Seed Database automatically on startup

@@ -9,15 +9,15 @@ namespace exam_system.Features.Analytics.GetAdminDashboard.Handlers
     public class GetAllRegistredUsersNumbersQueryHandler : IRequestHandler<GetAllRegisteredUserNumberQuery, int>
     {
 
-        private readonly UserManager<AppUser> _userManger;
-        public GetAllRegistredUsersNumbersQueryHandler(UserManager<AppUser> userManager)
+        
+        public GetAllRegistredUsersNumbersQueryHandler()
         {
-            _userManger = userManager;
+            
         }
         public async Task<int> Handle(GetAllRegisteredUserNumberQuery request, CancellationToken cancellationToken)
         {
-          int numberOfRegistredUsers= await _userManger.Users.CountAsync();
-            return numberOfRegistredUsers;
+          
+            return 0;
         }
     }
 }
