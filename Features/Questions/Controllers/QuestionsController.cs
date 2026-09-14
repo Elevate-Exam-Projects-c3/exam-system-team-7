@@ -1,4 +1,5 @@
 ﻿using exam_system.Features.Questions.AdminCreateQuestion.Orchestrators;
+using exam_system.Features.Questions.AdminDeleteQuestion.Orchestrators;
 using exam_system.Features.Questions.AdminGetQuestion.Queries;
 using exam_system.Features.Shared;
 using exam_system.ViewModels.Options;
@@ -19,7 +20,7 @@ namespace exam_system.Features.Questions.Controllers {
         }
 
         [HttpPost("{quizId:guid}/questions")]
-        public async Task<ActionResult<EndpointResponse<bool>>> CreateQuestion(Guid quizId, [FromBody] CreateQuestionViewModel createQuestion, CancellationToken cancellationToken) {
+        public async Task<ActionResult<EndpointResponse<Guid>>> CreateQuestion(Guid quizId, [FromBody] CreateQuestionViewModel createQuestion, CancellationToken cancellationToken) {
             try {
                 var result = await mediator.Send(
                     new CreateQuestionsAndOptionsOrchestrator(
@@ -31,7 +32,7 @@ namespace exam_system.Features.Questions.Controllers {
 
                     ), cancellationToken
                 );
-                return StatusCode(result.StatusCode,EndpointResponse<bool>.FromResult(result));
+                return StatusCode(result.StatusCode,EndpointResponse<Guid>.FromResult(result));
 
             } catch (FluentValidation.ValidationException ex) {
                 var errors = ex.Errors
@@ -87,6 +88,15 @@ namespace exam_system.Features.Questions.Controllers {
             );
 
         }
+
+
+        [HttpDelete("{quizId:guid}/{questionId:guid}")]
+        public async Task<ActionResult<EndpointResponse<bool>>> DeleteQuestion(Guid quizId,Guid questionId,CancellationToken cancellationToken) {
+            var result = await mediator.Send(new DeleteQuestionOrchestrator(quizId,questionId),cancellationToken);
+
+            return StatusCode(result.StatusCode,EndpointResponse<bool>.FromResult(result));
+        }
+
 
     }
 }

@@ -8,5 +8,5 @@ namespace exam_system.Features.Questions.AdminCreateQuestion.Orchestrators {
      string Text,
      string? Explanation,
      int OrderIndex,
-     List<CreateOptionViewModel> Options) : IRequest<RequestResponse<bool>>;
+     List<CreateOptionViewModel> Options) : IRequest<RequestResponse<Guid>>;
 }
