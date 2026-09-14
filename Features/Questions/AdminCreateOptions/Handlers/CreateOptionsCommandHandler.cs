@@ -8,12 +8,9 @@ namespace exam_system.Features.Questions.AdminCreateOptions.Handlers {
     public class CreateOptionsCommandHandler : IRequestHandler<CreateOptionsCommand, RequestResponse<Guid>> {
 
         private readonly IGenericRepository<QuestionOption> optionsRepository;
-        private readonly IUnitOfWork unitOfWork;
 
-        public CreateOptionsCommandHandler(IGenericRepository<QuestionOption> optionsRepository , 
-            IUnitOfWork unitOfWork) {
+        public CreateOptionsCommandHandler(IGenericRepository<QuestionOption> optionsRepository) { 
             this.optionsRepository = optionsRepository;
-            this.unitOfWork = unitOfWork;
         }
 
 
@@ -30,14 +27,8 @@ namespace exam_system.Features.Questions.AdminCreateOptions.Handlers {
 
             await optionsRepository.AddAsync(newOption);
 
-            var result = await unitOfWork.SaveChangesAsync();
 
-
-            if (result <= 0)
-                return RequestResponse<Guid>.Fail("Options failed to Create.");
-
-
-            return RequestResponse<Guid>.Ok(newOption.Id, "Option created successfully.");
+            return RequestResponse<Guid>.Created(newOption.Id, "Option created successfully.");
         }
     }
 }

@@ -9,11 +9,9 @@ namespace exam_system.Features.Questions.AdminCreateQuestion.Handlers {
 
         private readonly IGenericRepository<Question> questionsRepository;
 
-        private readonly IUnitOfWork unitOfWork;
 
-        public CreateQuestionCommandHandler(IGenericRepository<Question> questionsRepository , IUnitOfWork unitOfWork) {
+        public CreateQuestionCommandHandler(IGenericRepository<Question> questionsRepository) {
             this.questionsRepository = questionsRepository;
-            this.unitOfWork = unitOfWork;
         }
         public async Task<RequestResponse<Guid>> Handle(CreateQuestionCommand request, CancellationToken cancellationToken) {
 
@@ -29,12 +27,6 @@ namespace exam_system.Features.Questions.AdminCreateQuestion.Handlers {
             };
 
             await questionsRepository.AddAsync(question);
-
-            var result = await unitOfWork.SaveChangesAsync(cancellationToken);
-
-            if (result <= 0)
-                return RequestResponse<Guid>.Fail("Question failed to Carete.");
-
 
             return RequestResponse<Guid>.Created(question.Id, "Question created successfully.");
         }
