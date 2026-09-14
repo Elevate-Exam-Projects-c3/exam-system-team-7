@@ -8,25 +8,25 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace exam_system.Persistence.Configurations;
 
-public class ApplicationUserConfiguration : IEntityTypeConfiguration<ApplicationUser>
-{
-    public void Configure(EntityTypeBuilder<ApplicationUser> builder)
-    {
-        builder.ToTable("AspNetUsers");
-        builder.HasKey(u => u.Id);
+//public class ApplicationUserConfiguration : IEntityTypeConfiguration<ApplicationUser>
+//{
+//    public void Configure(EntityTypeBuilder<ApplicationUser> builder)
+//    {
+//        builder.ToTable("AspNetUsers");
+//        builder.HasKey(u => u.Id);
 
-        builder.Property(u => u.FullName).HasMaxLength(100).IsRequired();
-        builder.Property(u => u.Email).HasMaxLength(256).IsRequired();
-        builder.Property(u => u.PasswordHash).IsRequired();
+//        builder.Property(u => u.FullName).HasMaxLength(100).IsRequired();
+//        builder.Property(u => u.Email).HasMaxLength(256).IsRequired();
+//        builder.Property(u => u.PasswordHash).IsRequired();
 
-        builder.HasIndex(u => u.Email).IsUnique();
+//        builder.HasIndex(u => u.Email).IsUnique();
 
-        builder.HasOne(u => u.Student)
-            .WithOne(s => s.User)
-            .HasForeignKey<Student>(s => s.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
-    }
-}
+//        builder.HasOne(u => u.Student)
+//            .WithOne(s => s.User)
+//            .HasForeignKey<Student>(s => s.UserId)
+//            .OnDelete(DeleteBehavior.Cascade);
+//    }
+//}
 
 public class StudentConfiguration : IEntityTypeConfiguration<Student>
 {
@@ -40,61 +40,61 @@ public class StudentConfiguration : IEntityTypeConfiguration<Student>
     }
 }
 
-public class EmailVerificationOtpConfiguration : IEntityTypeConfiguration<EmailVerificationOtp>
-{
-    public void Configure(EntityTypeBuilder<EmailVerificationOtp> builder)
-    {
-        builder.ToTable("OtpCodes");
-        builder.HasKey(o => o.Id);
+//public class EmailVerificationOtpConfiguration : IEntityTypeConfiguration<EmailVerificationOtp>
+//{
+//    public void Configure(EntityTypeBuilder<EmailVerificationOtp> builder)
+//    {
+//        builder.ToTable("OtpCodes");
+//        builder.HasKey(o => o.Id);
 
-        builder.Property(o => o.Email).HasMaxLength(256).IsRequired();
-        builder.Property(o => o.OtpHash).IsRequired();
+//        builder.Property(o => o.Email).HasMaxLength(256).IsRequired();
+//        builder.Property(o => o.OtpHash).IsRequired();
 
-        builder.HasOne(o => o.User)
-            .WithMany(u => u.EmailVerificationOtps)
-            .HasForeignKey(o => o.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+//        builder.HasOne(o => o.User)
+//            .WithMany(u => u.EmailVerificationOtps)
+//            .HasForeignKey(o => o.UserId)
+//            .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasIndex(o => o.Email);
-    }
-}
+//        builder.HasIndex(o => o.Email);
+//    }
+//}
 
-public class PasswordResetOtpConfiguration : IEntityTypeConfiguration<PasswordResetOtp>
-{
-    public void Configure(EntityTypeBuilder<PasswordResetOtp> builder)
-    {
-        builder.ToTable("PasswordResetOtps");
-        builder.HasKey(o => o.Id);
+//public class PasswordResetOtpConfiguration : IEntityTypeConfiguration<PasswordResetOtp>
+//{
+//    public void Configure(EntityTypeBuilder<PasswordResetOtp> builder)
+//    {
+//        builder.ToTable("PasswordResetOtps");
+//        builder.HasKey(o => o.Id);
 
-        builder.Property(o => o.Email).HasMaxLength(256).IsRequired();
-        builder.Property(o => o.OtpHash).IsRequired();
+//        builder.Property(o => o.Email).HasMaxLength(256).IsRequired();
+//        builder.Property(o => o.OtpHash).IsRequired();
 
-        builder.HasOne(o => o.User)
-            .WithMany(u => u.PasswordResetOtps)
-            .HasForeignKey(o => o.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+//        builder.HasOne(o => o.User)
+//            .WithMany(u => u.PasswordResetOtps)
+//            .HasForeignKey(o => o.UserId)
+//            .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasIndex(o => o.Email);
-    }
-}
+//        builder.HasIndex(o => o.Email);
+//    }
+//}
 
-public class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
-{
-    public void Configure(EntityTypeBuilder<RefreshToken> builder)
-    {
-        builder.ToTable("RefreshTokens");
-        builder.HasKey(r => r.Id);
+//public class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
+//{
+//    public void Configure(EntityTypeBuilder<RefreshToken> builder)
+//    {
+//        builder.ToTable("RefreshTokens");
+//        builder.HasKey(r => r.Id);
 
-        builder.Property(r => r.Token).IsRequired();
+//        builder.Property(r => r.Token).IsRequired();
 
-        builder.HasOne(r => r.User)
-            .WithMany(u => u.RefreshTokens)
-            .HasForeignKey(r => r.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+//        builder.HasOne(r => r.User)
+//            .WithMany(u => u.RefreshTokens)
+//            .HasForeignKey(r => r.UserId)
+//            .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasIndex(r => r.Token).IsUnique();
-    }
-}
+//        builder.HasIndex(r => r.Token).IsUnique();
+//    }
+//}
 
 public class DiplomaConfiguration : IEntityTypeConfiguration<Diploma>
 {

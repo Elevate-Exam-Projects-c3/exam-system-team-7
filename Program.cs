@@ -1,10 +1,12 @@
 using exam_system.Domain.Entities.Diplomas;
+using exam_system.Domain.Entities.Identity;
 using exam_system.Features.Quizzes.Validators;
 using exam_system.Persistence;
 using exam_system.Persistence.Context;
 using exam_system.Persistence.DataAccess;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 
@@ -24,6 +26,8 @@ builder.Services.AddTransient(
     typeof(IPipelineBehavior<,>),
     typeof(ValidationBehavior<,>));
 
+//Adding Identity Service
+builder.Services.AddIdentity<AppUser, IdentityRole>().AddEntityFrameworkStores<AppDbContext>();
 var app = builder.Build();
 
 // Seed Database automatically on startup
