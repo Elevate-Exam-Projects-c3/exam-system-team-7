@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using exam_system.Features.Identity.Login.Orchestrators;
 using exam_system.Features.Identity.Shared;
 
@@ -28,7 +29,9 @@ public class LoginController : ControllerBase
     // POST /api/auth/login — body: { email, password }
     // Success: 200 — body carries the JWT access token (15-min TTL); the
     // refresh token (7-day TTL) is delivered as an httpOnly cookie.
+    // EXAM-109: rate-limited to 10 requests/minute per IP (429 + Retry-After).
     [HttpPost("login")]
+    [EnableRateLimiting("auth")]
     public async Task<IActionResult> Login([FromBody] LoginUserCommand command, CancellationToken cancellationToken)
     {
         var response = await _mediator.Send(command, cancellationToken);

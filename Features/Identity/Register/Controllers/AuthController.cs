@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using exam_system.Features.Identity.Register.Orchestrators;
 
 namespace exam_system.Features.Identity.Register.Controllers;
@@ -19,7 +20,9 @@ public class AuthController : ControllerBase
     }
 
     // POST /api/auth/register — body: { fullName, email, password }
+    // EXAM-109: rate-limited to 10 requests/minute per IP (429 + Retry-After).
     [HttpPost("register")]
+    [EnableRateLimiting("auth")]
     public async Task<IActionResult> Register([FromBody] RegisterUserCommand command, CancellationToken cancellationToken)
     {
         var response = await _mediator.Send(command, cancellationToken);
@@ -27,7 +30,9 @@ public class AuthController : ControllerBase
     }
 
     // POST /api/auth/verify-otp — body: { email, code } (EXAM-104)
+    // EXAM-109: rate-limited to 10 requests/minute per IP (429 + Retry-After).
     [HttpPost("verify-otp")]
+    [EnableRateLimiting("auth")]
     public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpCommand command, CancellationToken cancellationToken)
     {
         var response = await _mediator.Send(command, cancellationToken);
@@ -35,7 +40,10 @@ public class AuthController : ControllerBase
     }
 
     // POST /api/auth/resend-otp — body: { email } (EXAM-2 internal subtask)
+    // EXAM-109: rate-limited to 10 requests/minute per IP — our addition
+    // beyond the stories list (email-bombing-prone endpoint).
     [HttpPost("resend-otp")]
+    [EnableRateLimiting("auth")]
     public async Task<IActionResult> ResendOtp([FromBody] ResendOtpCommand command, CancellationToken cancellationToken)
     {
         var response = await _mediator.Send(command, cancellationToken);

@@ -1,13 +1,16 @@
 using System.Reflection;
 using System.Text;
+using System.Threading.RateLimiting;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using exam_system.Common.Middleware;
 using exam_system.Domain.Entities.Diplomas;
 using exam_system.Features.Identity.Shared;
+using exam_system.Features.Shared;
 using exam_system.Persistence;
 using exam_system.Persistence.Context;
 using exam_system.Persistence.DataAccess;
@@ -68,6 +71,31 @@ builder.Services
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Key))
         };
     });
+
+// EXAM-109 — Auth rate limiting: 10 requests per minute per client IP on the
+// four auth endpoints (register / login / verify-otp / resend-otp — the
+// resend is our addition; the stories list predates it and it is the most
+// email-bombing-prone endpoint). Fixed window limiter from the built-in
+// Microsoft.AspNetCore.RateLimiting middleware — no external package.
+// When rejected: HTTP 429 + Retry-After header (60s) + our RequestResponse shape.
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        context.HttpContext.Response.Headers["Retry-After"] = "60";
+        await context.HttpContext.Response.WriteAsJsonAsync(
+            RequestResponse<object>.Fail(
+                "Too many requests. Please try again later.",
+                429),
+            cancellationToken);
+    };
+
+    // The named "auth" policy (implemented in Common/Middleware/AuthRateLimitPolicy)
+    // is applied per-endpoint via [EnableRateLimiting("auth")].
+    options.AddPolicy<string, AuthRateLimitPolicy>(AuthRateLimitPolicy.PolicyName);
+});
 
 var app = builder.Build();
 
