@@ -20,7 +20,6 @@ namespace exam_system.Features.Quizzes.AdminCreateQuiz.Handlers {
         async Task<RequestResponse<Guid>> IRequestHandler<CreateQuizCommand, RequestResponse<Guid>>.Handle(CreateQuizCommand request, CancellationToken cancellationToken) {
             var quiz = new Quiz {
 
-                Id= Guid.NewGuid(),
 
                 DiplomaId = request.DiplomaId,
 
