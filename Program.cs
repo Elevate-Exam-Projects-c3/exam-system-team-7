@@ -1,7 +1,10 @@
 using System.Reflection;
+using System.Text;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using exam_system.Common.Middleware;
 using exam_system.Domain.Entities.Diplomas;
 using exam_system.Features.Identity.Shared;
@@ -41,6 +44,31 @@ builder.Services.AddSingleton<IOtpGenerator, RandomOtpGenerator>();
 builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection(SmtpOptions.SectionName));
 builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();
 
+// EXAM-108 — JWT authentication. The same key signs (ITokenService) and
+// validates (AddJwtBearer) every token, so both sides must agree on Issuer,
+// Audience, Key and lifetime. Settings live in the "Jwt" section of
+// appsettings.Development.json — ⚠️ the Key must be rotated before any
+// production deployment (it is in a git-tracked dev file).
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
+builder.Services.AddSingleton<ITokenService, JwtTokenService>();
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        var jwt = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()!;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = jwt.Issuer,
+            ValidateAudience = true,
+            ValidAudience = jwt.Audience,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Key))
+        };
+    });
+
 var app = builder.Build();
 
 // Global exception handling: ValidationException -> 400 with field-mapped
@@ -76,6 +104,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+// Authentication first (who are you? — validates the Bearer JWT), then
+// authorization (what are you allowed to do?) — the order matters.
+app.UseAuthentication();
 app.UseAuthorization();
 
 // Test Minimal API Endpoint to verify database access and generic repository
