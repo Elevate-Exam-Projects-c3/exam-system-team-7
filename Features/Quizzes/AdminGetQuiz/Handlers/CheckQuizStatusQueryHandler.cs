@@ -17,7 +17,7 @@ namespace exam_system.Features.Quizzes.AdminGetQuiz.Handlers {
 
             var quiz = await quizRepository.GetAll().FirstOrDefaultAsync(x=> x.Id == request.QuizId && !x.IsDeleted);
 
-            if (quiz != null)
+            if (quiz == null)
                 return RequestResponse<bool>.Fail("Quiz not found." , StatusCodes.Status404NotFound);
 
             if (quiz?.Status != QuizStatus.Published) 
