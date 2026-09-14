@@ -17,11 +17,11 @@ namespace exam_system.Features.Questions.Controllers {
         }
 
         [HttpPost("{quizId:guid}/questions")]
-        public async Task<ActionResult<EndpointResponse<bool>>> CreateQuestion([FromBody] CreateQuestionViewModel createQuestion, CancellationToken cancellationToken) {
+        public async Task<ActionResult<EndpointResponse<bool>>> CreateQuestion(Guid quizId, [FromBody] CreateQuestionViewModel createQuestion, CancellationToken cancellationToken) {
             try {
                 var result = await mediator.Send(
                     new CreateQuestionsAndOptionsOrchestrator(
-                        createQuestion.quizId,
+                        quizId,
                         createQuestion.Text,
                         createQuestion.Explanation,
                         createQuestion.OrderIndex,

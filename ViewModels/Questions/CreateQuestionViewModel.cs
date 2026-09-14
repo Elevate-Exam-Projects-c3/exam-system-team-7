@@ -1,7 +1,6 @@
 ﻿namespace exam_system.ViewModels.Questions {
     public class CreateQuestionViewModel {
 
-        public Guid quizId { get; set; }
         public string Text { get; set; } = string.Empty;
 
         public string? Explanation { get; set; }
