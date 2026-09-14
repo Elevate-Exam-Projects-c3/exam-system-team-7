@@ -7,15 +7,8 @@ using exam_system.Persistence.DataAccess;
 
 namespace exam_system.Features.Identity.Register.Orchestrators;
 
-// EXAM-104 + EXAM-105 — Orchestrator pattern: verify-otp touches TWO
-// aggregates (the OtpCodes row and the ApplicationUser), so coordination
-// lives here:
-//   1. READ: the most recently issued unused OTP for the email,
-//   2. GATES in order: exists? locked? expired (DISTINCT message)? hash match?
-//   3. ONE transaction: consume the OTP + activate the user.
-// EXAM-105: a WRONG code sends RecordWrongOtpAttemptCommand (single-object
-// increment) BEFORE answering; once the counter reaches 5 the locked message
-// replaces the generic one. Expired/locked/missing attempts do NOT count.
+// OTP verification: check the latest unused code, consume it and activate
+// the user in one transaction. Wrong codes count toward the 5-attempt lock.
 public class VerifyOtpOrchestrator : IRequestHandler<VerifyOtpCommand, RequestResponse<Guid>>
 {
     private const int MaxAttempts = 5;
@@ -42,23 +35,19 @@ public class VerifyOtpOrchestrator : IRequestHandler<VerifyOtpCommand, RequestRe
         // Same canonical value as registration (Trim + ToLowerInvariant).
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
 
-        // "Only the most recently issued OTP for a given email is valid":
-        // take the newest row that is still unused. The global soft-delete
-        // filter is applied automatically.
+        // Only the most recently issued unused OTP is valid.
         var otp = await _otps
             .Get(o => o.Email == normalizedEmail && !o.IsUsed)
             .OrderByDescending(o => o.CreatedAt)
             .FirstOrDefaultAsync(cancellationToken);
 
-        // Gate 1 — no pending OTP for this email: GENERIC failure only.
-        // Never reveal whether the email exists (enumeration protection).
+        // Generic answer: never reveal whether the email exists.
         if (otp is null)
         {
             return InvalidCode();
         }
 
-        // Gate 2 — already locked by previous submissions (no further
-        // counting: the counter is already at the limit).
+        // Locked after five wrong attempts.
         if (otp.AttemptCount >= MaxAttempts)
         {
             return RequestResponse<Guid>.Fail(
@@ -66,8 +55,7 @@ public class VerifyOtpOrchestrator : IRequestHandler<VerifyOtpCommand, RequestRe
                 400);
         }
 
-        // Gate 3 — expired: DISTINCT message, as the story demands
-        // (not the generic invalid-code error).
+        // Expired gets its own message so the user requests a new code.
         if (otp.ExpiresAt <= DateTime.UtcNow)
         {
             return RequestResponse<Guid>.Fail(
@@ -75,12 +63,8 @@ public class VerifyOtpOrchestrator : IRequestHandler<VerifyOtpCommand, RequestRe
                 400);
         }
 
-        // Gate 4 — hash comparison with the same bcrypt service that hashed
-        // it at registration. A wrong code FIRST counts as an attempt
-        // (EXAM-105: every wrong submission increments AttemptCount via its
-        // own single-object Command), THEN we answer: locked message once the
-        // counter reaches 5, generic message before that. Expired/locked/
-        // missing attempts never reach this gate, so they never count.
+        // Wrong code: count the attempt first, then answer
+        // (locked message at 5, generic before that).
         if (!_passwordHasher.Verify(request.Code, otp.OtpHash))
         {
             var attemptResult = await _mediator.Send(
@@ -97,22 +81,21 @@ public class VerifyOtpOrchestrator : IRequestHandler<VerifyOtpCommand, RequestRe
             return InvalidCode();
         }
 
-        // ONE transaction: both mutations commit together or not at all.
+        // Consume the OTP and activate the user in one transaction.
         await _unitOfWork.BeginTransactionAsync();
         var committed = false;
         try
         {
-            // Step 1 — consume the OTP row (one object).
+            // Mark the OTP as used.
             await _mediator.Send(new ConsumeEmailVerificationOtpCommand(otp.Id), cancellationToken);
 
-            // Step 2 — activate the user (one object).
+            // Activate the user.
             await _mediator.Send(new ActivateUserCommand(otp.UserId), cancellationToken);
 
             await _unitOfWork.CommitTransactionAsync();
             committed = true;
 
-            // 200 — the state changed, nothing new was created. The response
-            // NEVER contains the password hash or the OTP.
+            // 200: state changed, nothing new was created.
             return RequestResponse<Guid>.Ok(
                 otp.UserId,
                 "Email verified successfully. Your account is now active.");
@@ -126,7 +109,7 @@ public class VerifyOtpOrchestrator : IRequestHandler<VerifyOtpCommand, RequestRe
         }
     }
 
-    // One generic shape for "no OTP / wrong code" — deliberately vague.
+    // Deliberately vague for both missing and wrong codes.
     private static RequestResponse<Guid> InvalidCode()
     {
         return RequestResponse<Guid>.Fail("Invalid code.", 400);

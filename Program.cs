@@ -25,33 +25,23 @@ builder.Services.AddPersistenceServices(builder.Configuration);
 
 builder.Services.AddMediatR(typeof(Program).Assembly);
 
-// FluentValidation: find every AbstractValidator<> in this assembly and register
-// it as IValidator<TRequest> so the ValidationBehavior can inject them.
+// Register all validators so the ValidationBehavior can inject them.
 builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
-// MediatR pipeline: run ValidationBehavior before every Handler (fail fast).
+// Run ValidationBehavior before every handler.
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
-// Password hashing: one Singleton instance is enough — the hasher keeps no
-// state and BCrypt is thread-safe, so the same instance can serve all requests.
+// Password hashing via bcrypt.
 builder.Services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
 
-// EXAM-103 services: OTP generation (crypto-random) and email delivery.
-// Both are stateless, so Singleton is enough. Feature code only knows the
-// IEmailSender interface — the console sender (DevEmailSender) can be
-// swapped back for offline development without touching any handler.
+// OTP generation and email delivery.
 builder.Services.AddSingleton<IOtpGenerator, RandomOtpGenerator>();
 
-// Real SMTP delivery (MailKit). Settings live in the "Smtp" section of
-// appsettings.Development.json (Gmail: smtp.gmail.com:587 + app password).
+// SMTP email delivery via MailKit.
 builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection(SmtpOptions.SectionName));
 builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();
 
-// EXAM-108 — JWT authentication. The same key signs (ITokenService) and
-// validates (AddJwtBearer) every token, so both sides must agree on Issuer,
-// Audience, Key and lifetime. Settings live in the "Jwt" section of
-// appsettings.Development.json — ⚠️ the Key must be rotated before any
-// production deployment (it is in a git-tracked dev file).
+// JWT authentication: the same key signs and validates the tokens.
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
 builder.Services.AddSingleton<ITokenService, JwtTokenService>();
 
@@ -72,12 +62,8 @@ builder.Services
         };
     });
 
-// EXAM-109 — Auth rate limiting: 10 requests per minute per client IP on the
-// four auth endpoints (register / login / verify-otp / resend-otp — the
-// resend is our addition; the stories list predates it and it is the most
-// email-bombing-prone endpoint). Fixed window limiter from the built-in
-// Microsoft.AspNetCore.RateLimiting middleware — no external package.
-// When rejected: HTTP 429 + Retry-After header (60s) + our RequestResponse shape.
+// Rate limiting for the auth endpoints: 10 requests/minute per client IP;
+// rejections return 429 + Retry-After.
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -92,16 +78,12 @@ builder.Services.AddRateLimiter(options =>
             cancellationToken);
     };
 
-    // The named "auth" policy (implemented in Common/Middleware/AuthRateLimitPolicy)
-    // is applied per-endpoint via [EnableRateLimiting("auth")].
     options.AddPolicy<string, AuthRateLimitPolicy>(AuthRateLimitPolicy.PolicyName);
 });
 
 var app = builder.Build();
 
-// Global exception handling: ValidationException -> 400 with field-mapped
-// errors, anything else -> 500 without leaking details. Replaces the inline
-// catch that used to live in the temporary test endpoint.
+// Maps ValidationException to 400 and anything else to 500.
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
 // Seed Database automatically on startup
@@ -137,30 +119,6 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Test Minimal API Endpoint to verify database access and generic repository
-app.MapGet("/api/test/diplomas", async (IGenericRepository<Diploma> diplomaRepo, CancellationToken ct) =>
-{
-    var diplomas = await diplomaRepo.GetAll()
-        .Select(d => new
-        {
-            d.Id,
-            d.Title,
-            d.Description,
-            QuizzesCount = d.Quizzes.Count,
-            EnrollmentsCount = d.Enrollments.Count,
-            d.CreatedAt
-        })
-        .ToListAsync(ct);
-
-    return Results.Ok(new
-    {
-        Success = true,
-        Count = diplomas.Count,
-        Data = diplomas
-    });
-})
-.WithName("GetTestDiplomas")
-.WithTags("Test");
 
 app.MapControllers();
 

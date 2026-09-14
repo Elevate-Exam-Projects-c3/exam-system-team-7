@@ -5,9 +5,7 @@ using exam_system.Features.Identity.Register.Orchestrators;
 
 namespace exam_system.Features.Identity.Register.Controllers;
 
-// Thin controller (EXAM-103): it injects IMediator and forwards the request —
-// zero business logic here. The MediatR pipeline (validation → orchestrator)
-// does the work; the controller only maps the response to HTTP.
+// Auth endpoints for the register flow: register / verify-otp / resend-otp.
 [ApiController]
 [Route("api/auth")]
 public class AuthController : ControllerBase
@@ -20,7 +18,6 @@ public class AuthController : ControllerBase
     }
 
     // POST /api/auth/register — body: { fullName, email, password }
-    // EXAM-109: rate-limited to 10 requests/minute per IP (429 + Retry-After).
     [HttpPost("register")]
     [EnableRateLimiting("auth")]
     public async Task<IActionResult> Register([FromBody] RegisterUserCommand command, CancellationToken cancellationToken)
@@ -29,8 +26,7 @@ public class AuthController : ControllerBase
         return StatusCode(response.StatusCode, response);
     }
 
-    // POST /api/auth/verify-otp — body: { email, code } (EXAM-104)
-    // EXAM-109: rate-limited to 10 requests/minute per IP (429 + Retry-After).
+    // POST /api/auth/verify-otp — body: { email, code }
     [HttpPost("verify-otp")]
     [EnableRateLimiting("auth")]
     public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpCommand command, CancellationToken cancellationToken)
@@ -39,9 +35,7 @@ public class AuthController : ControllerBase
         return StatusCode(response.StatusCode, response);
     }
 
-    // POST /api/auth/resend-otp — body: { email } (EXAM-2 internal subtask)
-    // EXAM-109: rate-limited to 10 requests/minute per IP — our addition
-    // beyond the stories list (email-bombing-prone endpoint).
+    // POST /api/auth/resend-otp — body: { email }
     [HttpPost("resend-otp")]
     [EnableRateLimiting("auth")]
     public async Task<IActionResult> ResendOtp([FromBody] ResendOtpCommand command, CancellationToken cancellationToken)

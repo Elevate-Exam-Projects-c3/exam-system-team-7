@@ -6,9 +6,7 @@ using exam_system.Persistence.DataAccess;
 
 namespace exam_system.Features.Identity.Login.Handlers;
 
-// Single responsibility: ONE ApplicationUser's FailedLoginAttempts +1,
-// persisted. The new count travels back so the Orchestrator can decide about
-// locking without re-reading the row.
+// Increments one user's FailedLoginAttempts and returns the new count.
 public class RecordFailedLoginAttemptCommandHandler
     : IRequestHandler<RecordFailedLoginAttemptCommand, RequestResponse<int>>
 {

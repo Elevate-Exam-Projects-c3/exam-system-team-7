@@ -6,8 +6,7 @@ using exam_system.Persistence.DataAccess;
 
 namespace exam_system.Features.Identity.Login.Handlers;
 
-// Single responsibility: insert ONE RefreshTokens row (7-day TTL comes from
-// the Orchestrator). No decisions here — pure state change.
+// Inserts one RefreshTokens row; the token value comes from the Orchestrator.
 public class CreateRefreshTokenCommandHandler
     : IRequestHandler<CreateRefreshTokenCommand, RequestResponse<Guid>>
 {

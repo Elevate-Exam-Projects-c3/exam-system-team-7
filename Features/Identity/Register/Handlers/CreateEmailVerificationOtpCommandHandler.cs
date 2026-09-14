@@ -6,8 +6,7 @@ using exam_system.Persistence.DataAccess;
 
 namespace exam_system.Features.Identity.Register.Handlers;
 
-// Single responsibility: insert one OtpCodes row. No hashing here — the
-// Orchestrator already hashed the code; this Command only persists state.
+// Inserts one OtpCodes row; the code arrives already hashed.
 public class CreateEmailVerificationOtpCommandHandler
     : IRequestHandler<CreateEmailVerificationOtpCommand, RequestResponse<Guid>>
 {

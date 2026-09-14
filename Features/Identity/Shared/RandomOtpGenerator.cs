@@ -6,14 +6,10 @@ public class RandomOtpGenerator : IOtpGenerator
 {
     public string GenerateSixDigitOtp()
     {
-        // RandomNumberGenerator is the CRYPTOGRAPHIC random source. Unlike
-        // new Random(), its output cannot be predicted from earlier values.
-        // GetInt32 picks 0..999,999 with a uniform distribution — no modulo
-        // bias like random.Next() % 1000000 would have.
+        // Crypto-random source: uniform and unpredictable.
         var number = RandomNumberGenerator.GetInt32(0, 1_000_000);
 
-        // "D6" pads with leading zeros: 4231 -> "004231". An OTP with
-        // leading zeros is still a valid 6-digit OTP.
+        // Pad so "4231" becomes "004231".
         return number.ToString("D6");
     }
 }

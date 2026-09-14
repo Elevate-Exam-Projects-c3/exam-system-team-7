@@ -3,9 +3,7 @@ using exam_system.Features.Identity.Register.Orchestrators;
 
 namespace exam_system.Features.Identity.Register.Validators;
 
-// Shape rules only (team convention): a valid email format. Everything else
-// (does the account exist, is it pending, cooldown) needs the database and
-// lives in the Orchestrator.
+// Email format only; account checks live in the Orchestrator.
 public class ResendOtpCommandValidator : AbstractValidator<ResendOtpCommand>
 {
     public ResendOtpCommandValidator()

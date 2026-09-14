@@ -3,9 +3,7 @@ using exam_system.Features.Identity.Register.Orchestrators;
 
 namespace exam_system.Features.Identity.Register.Validators;
 
-// Shape rules only (team convention): email format + code is EXACTLY 6
-// digits. Business rules (expired / locked / wrong code) live in the
-// Orchestrator — they need the database.
+// Email format + a 6-digit code; business rules live in the Orchestrator.
 public class VerifyOtpCommandValidator : AbstractValidator<VerifyOtpCommand>
 {
     public VerifyOtpCommandValidator()

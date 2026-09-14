@@ -3,10 +3,7 @@ using exam_system.Features.Shared;
 
 namespace exam_system.Common.Middleware;
 
-// Global exception handler: every controller (and minimal API) gets the same
-// mapping — ValidationException -> 400 with field-mapped errors, anything
-// else -> 500 without leaking details. This replaces the inline catch that
-// used to live in the temporary test endpoint.
+// Maps ValidationException to 400 with field errors, anything else to 500.
 public class GlobalExceptionHandlingMiddleware
 {
     private readonly RequestDelegate _next;

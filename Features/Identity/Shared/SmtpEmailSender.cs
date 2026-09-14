@@ -4,10 +4,7 @@ using MimeKit;
 
 namespace exam_system.Features.Identity.Shared;
 
-// Real email delivery with MailKit (EXAM-103). Gmail SMTP: host
-// smtp.gmail.com, port 587 with STARTTLS, and an APP password (not the
-// account password). Feature code never sees this class — it depends on
-// IEmailSender only.
+// SMTP email delivery with MailKit (STARTTLS).
 public class SmtpEmailSender : IEmailSender
 {
     private readonly SmtpOptions _options;
@@ -33,7 +30,7 @@ public class SmtpEmailSender : IEmailSender
         await client.SendAsync(message, cancellationToken);
         await client.DisconnectAsync(true, cancellationToken);
 
-        // The log records the delivery metadata only — never the OTP body.
+        // Log the delivery metadata only — never the message body.
         _logger.LogInformation("Email sent to {To} via SMTP {Host}:{Port}", to, _options.Host, _options.Port);
     }
 }

@@ -9,35 +9,14 @@ using exam_system.Persistence.DataAccess;
 
 namespace exam_system.Features.Identity.Login.Orchestrators;
 
-// EXAM-107 + EXAM-108 — Orchestrator for the login flow. Gates, in order,
-// each chosen deliberately:
-//   1. unknown email    -> generic "Invalid email or password" — the SAME
-//                          answer a wrong password gets, so nobody can probe
-//                          which emails are registered (anti-enumeration).
-//   2. still locked     -> distinct locked message; no verification, no counting.
-//   3. wrong password   -> RecordFailedLoginAttemptCommand (mechanics); once the
-//                          counter reaches 5 -> LockUserAccountCommand and the
-//                          locked message; the generic message before that.
-//   4. correct password -> ResetFailedLoginAttemptsCommand — a correct password
-//                          ends the consecutive-failure streak even while the
-//                          account is still pending; THEN the account state is
-//                          checked (pending -> explanatory error, required by
-//                          the story, NOT the generic credentials message).
-//   5. active+confirmed -> ISSUE THE TOKENS (EXAM-108):
-//                          JWT generated via ITokenService (pure computation,
-//                          no DB) + ONE RefreshTokens row (7-day TTL) through
-//                          CreateRefreshTokenCommand.
-// Session policy (team decision, 2026-09-14 — REVERTED from one-session-per-user):
-// each login creates its own INDEPENDENT refresh token, so multiple devices can
-// stay logged in (laptop + mobile at the same time). Revocation happens at
-// logout (EXAM-111: current device) or password reset (EXAM-6: all devices) —
-// exactly what the stories describe. Every path still performs ONE write, so
-// no explicit transaction is needed here (implicit per SaveChanges).
-// The controller maps the response to HTTP and sets the httpOnly cookie.
+// Login flow: verify credentials, apply the 5-failures / 15-minutes
+// lockout, then issue the access token and create a refresh token row.
+// Each login gets its own refresh token, so multiple devices can stay
+// signed in; tokens are revoked at logout or password reset.
 public class LoginUserOrchestrator : IRequestHandler<LoginUserCommand, RequestResponse<LoginResponse>>
 {
-    private const int MaxFailedAttempts = 5;   // story rule: 5 consecutive failures
-    private const int LockoutMinutes = 15;     // story rule: locked for 15 minutes
+    private const int MaxFailedAttempts = 5;   // lock the account at five failures
+    private const int LockoutMinutes = 15;
 
     private readonly IMediator _mediator;
     private readonly IPasswordHasher _passwordHasher;
@@ -58,20 +37,21 @@ public class LoginUserOrchestrator : IRequestHandler<LoginUserCommand, RequestRe
 
     public async Task<RequestResponse<LoginResponse>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
     {
-        // Same canonical value as registration/verify (convention #7).
+        // Normalize the email like the register flow does.
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
 
         var user = await _users
             .Get(u => u.Email == normalizedEmail)
             .FirstOrDefaultAsync(cancellationToken);
 
-        // Gate 1 — unknown email: the SAME generic message a wrong password gets.
+        // Unknown email gets the SAME generic message as a wrong password —
+        // never reveal which field is wrong.
         if (user is null)
         {
             return InvalidCredentials();
         }
 
-        // Gate 2 — still locked: reject before any verification, count nothing.
+        // Still locked: reject before verifying anything.
         if (user.LockoutEnd is not null && user.LockoutEnd > DateTime.UtcNow)
         {
             var minutesLeft = (int)Math.Ceiling((user.LockoutEnd.Value - DateTime.UtcNow).TotalMinutes);
@@ -80,15 +60,12 @@ public class LoginUserOrchestrator : IRequestHandler<LoginUserCommand, RequestRe
                 400);
         }
 
-        // Gate 3 — credential verification (Strategy pattern: IPasswordHasher).
+        // Gate 3 — wrong password: count it, then answer.
         var passwordMatches = _passwordHasher.Verify(request.Password, user.PasswordHash);
 
         if (!passwordMatches)
         {
-            // EXAM-105-style mechanics: increment via the single-object Command,
-            // then decide. The lockout is a sliding window — on any attempt
-            // AFTER the limit (6th, 7th, ...) the counter is already >= 5, so
-            // the account is re-locked for another 15 minutes automatically.
+            // After the limit, every new wrong password re-locks the account.
             var attempt = await _mediator.Send(new RecordFailedLoginAttemptCommand(user.Id), cancellationToken);
 
             if (attempt.Data >= MaxFailedAttempts)
@@ -102,12 +79,10 @@ public class LoginUserOrchestrator : IRequestHandler<LoginUserCommand, RequestRe
             return InvalidCredentials();
         }
 
-        // The password is correct: the failure streak is over — reset it
-        // BEFORE the account-state check (the counter counts bad passwords,
-        // and a correct password is proof of ownership).
+        // Correct password ends the failure streak.
         await _mediator.Send(new ResetFailedLoginAttemptsCommand(user.Id), cancellationToken);
 
-        // Gate 4 — account state (story: explanatory error, NOT invalid-credentials).
+        // Pending accounts get an explanatory message, not the generic one.
         if (user.AccountStatus != AccountStatus.Active || !user.EmailConfirmed)
         {
             return RequestResponse<LoginResponse>.Fail(
@@ -115,18 +90,12 @@ public class LoginUserOrchestrator : IRequestHandler<LoginUserCommand, RequestRe
                 400);
         }
 
-        // EXAM-108 — token issuance. The JWT is a pure computation (no DB);
-        // the refresh token VALUE travels with the command (never logged).
-        // Multi-device policy: no revocation here — each login's token lives
-        // independently until logout (EXAM-111) or password reset (EXAM-6).
+        // Issue the token pair.
         var accessToken = _tokenService.GenerateAccessToken(user.Id, user.Role.ToString());
 
-        // Random 256-bit refresh token — unpredictable; one per login.
         var refreshTokenValue = Convert.ToBase64String(
             System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
 
-        // One write through its own command = one implicit transaction
-        // (the explicit Begin/Commit is only needed for multiple aggregates).
         await _mediator.Send(
             new CreateRefreshTokenCommand(
                 user.Id,
@@ -134,15 +103,12 @@ public class LoginUserOrchestrator : IRequestHandler<LoginUserCommand, RequestRe
                 DateTime.UtcNow.AddDays(7)),
             cancellationToken);
 
-        // The response carries the access token (15-min TTL) and the
-        // refresh token value — the CONTROLLER turns the latter into the
-        // httpOnly cookie (HTTP concern lives with HTTP, not in the flow).
         return RequestResponse<LoginResponse>.Ok(
             new LoginResponse(accessToken, refreshTokenValue),
             "Login successful.");
     }
 
-    // One generic shape for both "unknown email" and "wrong password".
+    // Same generic message for unknown email and wrong password.
     private static RequestResponse<LoginResponse> InvalidCredentials()
     {
         return RequestResponse<LoginResponse>.Fail("Invalid email or password.", 400);

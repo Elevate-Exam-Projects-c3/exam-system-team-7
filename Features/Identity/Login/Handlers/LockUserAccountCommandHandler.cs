@@ -6,7 +6,7 @@ using exam_system.Persistence.DataAccess;
 
 namespace exam_system.Features.Identity.Login.Handlers;
 
-// Single responsibility: ONE ApplicationUser's LockoutEnd = now + LockoutMinutes.
+// Sets one user's LockoutEnd.
 public class LockUserAccountCommandHandler
     : IRequestHandler<LockUserAccountCommand, RequestResponse<Guid>>
 {

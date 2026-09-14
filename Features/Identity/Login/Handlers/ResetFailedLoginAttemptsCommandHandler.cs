@@ -6,7 +6,7 @@ using exam_system.Persistence.DataAccess;
 
 namespace exam_system.Features.Identity.Login.Handlers;
 
-// Single responsibility: ONE ApplicationUser's FailedLoginAttempts = 0.
+// Resets one user's FailedLoginAttempts to zero.
 public class ResetFailedLoginAttemptsCommandHandler
     : IRequestHandler<ResetFailedLoginAttemptsCommand, RequestResponse<Guid>>
 {

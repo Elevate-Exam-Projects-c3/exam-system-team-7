@@ -8,10 +8,7 @@ using exam_system.Persistence.DataAccess;
 
 namespace exam_system.Features.Identity.Register.Handlers;
 
-// Single responsibility: mutate the Users table — one object, one state
-// change (bootcamp CQRS rule). The business rule owned by this aggregate:
-// the email must be unique (case-insensitive). The Orchestrator wraps this
-// Command inside its transaction.
+// Creates one pending ApplicationUser; 409 if the email already exists.
 public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, RequestResponse<Guid>>
 {
     private readonly IGenericRepository<ApplicationUser> _users;
@@ -25,8 +22,7 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Reque
 
     public async Task<RequestResponse<Guid>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
     {
-        // Sargable plain equality: case-insensitive via the DB collation
-        // (SQL_Latin1_General_CP1_CI_AS), index seek on IX_AspNetUsers_Email.
+        // Plain equality is sargable and case-insensitive (CI collation).
         var emailTaken = await _users
             .Get(u => u.Email == request.Email)
             .AnyAsync(cancellationToken);
@@ -42,9 +38,7 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Reque
                 });
         }
 
-        // Role=Student, AccountStatus=Pending, EmailConfirmed=false come from
-        // the entity defaults (EXAM-101). The Id is generated in memory by
-        // BaseEntity, so the Orchestrator can use it before saving.
+        // Role/status defaults come from the entity.
         var user = new ApplicationUser
         {
             FullName = request.FullName,

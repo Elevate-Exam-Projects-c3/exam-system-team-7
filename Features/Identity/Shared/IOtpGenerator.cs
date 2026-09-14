@@ -1,10 +1,8 @@
 namespace exam_system.Features.Identity.Shared;
 
-// Generates one-time codes. An OTP is a SECURITY value: it must be
-// unpredictable, so the implementation has to use a cryptographic
-// random source — never the ordinary Random class.
+// Generates 6-digit verification codes.
 public interface IOtpGenerator
 {
-    // Returns EXACTLY 6 digits, e.g. "004231" — leading zeros are valid.
+    // Exactly 6 digits, leading zeros included (e.g. "004231").
     string GenerateSixDigitOtp();
 }

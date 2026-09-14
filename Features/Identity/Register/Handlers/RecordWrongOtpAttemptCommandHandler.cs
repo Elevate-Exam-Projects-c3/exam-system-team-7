@@ -6,9 +6,7 @@ using exam_system.Persistence.DataAccess;
 
 namespace exam_system.Features.Identity.Register.Handlers;
 
-// Single responsibility: ONE OtpCodes row's AttemptCount +1, persisted.
-// Pure mechanics — no business decisions here: whether the counter reaching
-// the limit means a locked message is the Orchestrator's call.
+// Increments one OtpCodes row's AttemptCount and returns the new count.
 public class RecordWrongOtpAttemptCommandHandler
     : IRequestHandler<RecordWrongOtpAttemptCommand, RequestResponse<int>>
 {

@@ -1,11 +1,7 @@
 namespace exam_system.Features.Identity.Shared;
 
-// Development-only IEmailSender: it "sends" the email by writing it to the
-// console, so we can build and test the whole registration flow before the
-// real SMTP settings are wired up (next step: SmtpEmailSender with MailKit).
-// WARNING: logging a real OTP is acceptable ONLY in development. In
-// production the plain code must reach the recipient's mailbox and nowhere
-// else — never a log file.
+// Development-only: writes the email to the console. Never register this
+// implementation in production — real OTPs must not be logged.
 public class DevEmailSender : IEmailSender
 {
     private readonly ILogger<DevEmailSender> _logger;
