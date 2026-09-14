@@ -3,6 +3,7 @@ using exam_system.Features.Questions.AdminUpdateOptions.Commands;
 using exam_system.Features.Shared;
 using exam_system.Persistence.DataAccess;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace exam_system.Features.Questions.AdminUpdateOptions.Handlers {
     public class UpdateOptionsCommandHandler: IRequestHandler<UpdateOptionsCommand, RequestResponse<Guid>> {
@@ -16,20 +17,29 @@ namespace exam_system.Features.Questions.AdminUpdateOptions.Handlers {
 
         public async Task<RequestResponse<Guid>> Handle(UpdateOptionsCommand request,CancellationToken cancellationToken) {
 
-            var existingOption = optionsRepository
-                .GetAll()
-                .FirstOrDefault(o =>
-                    o.Id == request.optionId &&
-                    o.QuestionId == request.questionId &&
-                    !o.IsDeleted);
+            if (request.optionId == Guid.Empty) {
+                var newOption = new QuestionOption {
+                    QuestionId = request.questionId,
+                    OptionText = request.OptionText.Trim(),
+                    IsCorrect = request.IsCorrect,
+                };
 
-            if (existingOption == null) 
+                await optionsRepository.AddAsync(newOption);
+
+                return RequestResponse<Guid>.Ok(newOption.Id,"Option created successfully.");
+            }
+
+            var existingOption = await optionsRepository.GetAll().FirstOrDefaultAsync(o =>
+                        o.Id == request.optionId &&
+                        o.QuestionId == request.questionId &&
+                        !o.IsDeleted,cancellationToken);
+
+            if (existingOption == null) {
                 return RequestResponse<Guid>.Fail("Option not found.",StatusCodes.Status404NotFound);
-            
+            }
 
-            existingOption.OptionText = request.OptionText.Trim();
-
-            existingOption.IsCorrect = request.IsCorrect;
+            existingOption.OptionText =request.OptionText.Trim();
+            existingOption.IsCorrect =request.IsCorrect;
 
             optionsRepository.Update(existingOption);
 
