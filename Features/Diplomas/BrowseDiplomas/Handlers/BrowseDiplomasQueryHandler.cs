@@ -19,6 +19,8 @@ namespace exam_system.Features.Diplomas.BrowseDiplomas.Handlers
             _diplomaRepository = diplomaRepository;
         }
 
+        public Guid CurrentUserId { get; private set; }
+
         public async Task<RequestResponse<PaginatedResult<BrowseDiplomaItemDto>>> Handle(BrowseDiplomasQuery request, CancellationToken cancellationToken)
         {
             var diplomas = _diplomaRepository.GetAll().AsNoTracking().Where(d => d.IsDeleted == false &&
