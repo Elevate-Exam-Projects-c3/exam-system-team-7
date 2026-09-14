@@ -1,5 +1,7 @@
 ﻿using exam_system.Features.Questions.AdminCreateQuestion.Orchestrators;
+using exam_system.Features.Questions.AdminGetQuestion.Queries;
 using exam_system.Features.Shared;
+using exam_system.ViewModels.Options;
 using exam_system.ViewModels.Questions;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -47,5 +49,44 @@ namespace exam_system.Features.Questions.Controllers {
                 ));
             }
         }
+
+
+
+
+        [HttpGet("{quizId:guid}")]
+        public async Task<ActionResult<EndpointResponse<List<QuestionViewModel>>>> GetQuestions(Guid quizId , CancellationToken cancellationToken) {
+
+            var questions = await mediator.Send(new GetQuizQuestionsQuery(quizId), cancellationToken);
+
+            if (!questions.Success) {
+                return StatusCode(questions.StatusCode,
+                    EndpointResponse<List<QuestionViewModel>>.FromResult(
+                        RequestResponse<List<QuestionViewModel>>.Fail(
+                            questions.Message,
+                            questions.StatusCode,
+                            questions.Errors)));
+            }
+
+            var result = questions.Data!
+                 .Select(q => new QuestionViewModel {
+                     Id = q.Id,
+                     Text = q.Text,
+                     Options = q.Options
+                     .Select(o => new QuizOptionViewModel {
+                         Id = o.Id,
+                         OptionText = o.OptionText
+                     }).ToList()
+                 }).ToList();
+
+
+            
+
+            return StatusCode(questions.StatusCode,
+                EndpointResponse<List<QuestionViewModel>>.FromResult(RequestResponse<List<QuestionViewModel>>
+                .Ok(result, questions.Message, questions.StatusCode))
+            );
+
+        }
+
     }
 }
