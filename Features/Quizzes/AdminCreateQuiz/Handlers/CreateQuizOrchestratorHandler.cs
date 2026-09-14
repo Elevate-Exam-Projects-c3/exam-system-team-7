@@ -1,4 +1,5 @@
-﻿using exam_system.Features.Diplomas.GetDiplomaDetail.Queries;
+﻿using exam_system.Features.Diplomas.CommonQueries.Queries;
+using exam_system.Features.Diplomas.GetDiplomaDetail.Queries;
 using exam_system.Features.Quizzes.AdminCreateQuiz.Commands;
 using exam_system.Features.Quizzes.AdminCreateQuiz.Orchestrators;
 using exam_system.Features.Shared;
@@ -15,10 +16,10 @@ namespace exam_system.Features.Quizzes.AdminCreateQuiz.Handlers {
         }
         public async Task<RequestResponse<Guid>> Handle(CreateQuizOrchestrator request, CancellationToken cancellationToken) {
 
-            var diploma =  await mediator.Send(new CheckIfDiplomaExistQuery(request.DiplomaId));
+            var diploma =  await mediator.Send(new CheckDiplomaExistsQuery(request.DiplomaId));
 
-            if (!diploma.Data)
-                    return RequestResponse<Guid>.Fail(diploma.Message, StatusCodes.Status404NotFound);
+            if (diploma == false)
+                    return RequestResponse<Guid>.Fail("Diploma not found", StatusCodes.Status404NotFound);
 
             var result =  await mediator.Send(new CreateQuizCommand(
                 request.DiplomaId,
