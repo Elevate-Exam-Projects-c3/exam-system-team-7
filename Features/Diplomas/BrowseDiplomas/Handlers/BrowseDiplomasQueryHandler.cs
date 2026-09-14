@@ -13,7 +13,6 @@ namespace exam_system.Features.Diplomas.BrowseDiplomas.Handlers
     public class BrowseDiplomasQueryHandler : IRequestHandler<BrowseDiplomasQuery, RequestResponse<PaginatedResult<BrowseDiplomaItemDto>>>
     {
         private readonly IGenericRepository<Diploma> _diplomaRepository;
-        private readonly ICurrentUserService _currentUserService;
 
         public BrowseDiplomasQueryHandler(IGenericRepository<Diploma> diplomaRepository)
         {
@@ -36,7 +35,7 @@ namespace exam_system.Features.Diplomas.BrowseDiplomas.Handlers
                                        TotalQuizzes = d.Quizzes.Count(q => !q.IsDeleted && q.Status == QuizStatus.Published),
                                        // if this number related to current user i must edit this part to count only the quizzes that the current user has completed
                                        CompletedQuizzes = d.Quizzes.Count(q => !q.IsDeleted && q.Status == QuizStatus.Published 
-                                                                                            && q.Attempts.Any(a => !a.IsDeleted && a.StudentId == request.CurrentUserId))
+                                                                                            && q.Attempts.Any(a => !a.IsDeleted ))
                                    }).ToListAsync(cancellationToken);
 
 
