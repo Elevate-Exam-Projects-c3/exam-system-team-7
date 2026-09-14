@@ -10,15 +10,14 @@ namespace exam_system.Features.Questions.Validators {
             .NotEmpty();
 
             RuleFor(x => x.Options)
-                .NotNull()
-                .Must(x => x.Count >= 2)
-                .WithMessage("Question must have at least 2 options.");
+                          .Must(options => options != null && options.Count >= 2)
+                          .WithMessage("Question must have at least 2 options.");
 
             RuleFor(x => x.Options)
-                .Must(x => x.Count(o => o.IsCorrect) == 1)
-                .WithMessage(
-                    "Question must have exactly one correct option."
-                );
+                .Must(options =>
+                    options != null &&
+                    options.Count(x => x.IsCorrect) == 1)
+                .WithMessage("Question must have exactly one correct option.");
         }
     }
 }
