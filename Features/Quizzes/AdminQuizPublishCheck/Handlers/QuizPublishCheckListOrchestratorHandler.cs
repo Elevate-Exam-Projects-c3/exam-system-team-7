@@ -37,7 +37,7 @@ namespace exam_system.Features.Quizzes.AdminQuizPublishCheck.Handlers
                 }
             };
 
-            return RequestResponse<QuizPublishCheckDto>.Ok(QuizPublishDto);
+            return RequestResponse<QuizPublishCheckDto>.Ok(new QuizPublishCheckDto { Checks = QuizPublishDto.Checks });
 
         }
     private static PublishCheckItem CheckIfHasAtLeastOneQuestion(List<QuestionCorrectOptionCountDto> questions)
