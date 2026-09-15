@@ -1,11 +1,11 @@
-﻿using exam_system.Common.Enums;
+﻿using exam_system.Dtos.Attempts;
 using exam_system.Dtos.Quizes;
+using exam_system.Features.Attempts.CheckRemainingTime.Orchestrators;
 using exam_system.Features.Attempts.StartAttempt.Orchestrators;
 using exam_system.Features.Shared;
 using exam_system.ViewModels.Options;
 using exam_system.ViewModels.Questions;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace exam_system.Features.Attempts.Controllers {
@@ -22,7 +22,6 @@ namespace exam_system.Features.Attempts.Controllers {
 
         [HttpPost("{quizId:guid}/start-quiz")]
         //[Authorize(Roles = nameof(UserRole.Student))]
-
         public async Task<ActionResult<EndpointResponse<StartQuizViewModel>>> StartQuiz(Guid quizId,CancellationToken cancellationToken) {
             var studentId = Guid.Parse("AAAAAAAA-1111-1111-1111-AAAAAAAAAAAA");
 
@@ -55,6 +54,14 @@ namespace exam_system.Features.Attempts.Controllers {
 
             return StatusCode(result.StatusCode,EndpointResponse<StartQuizViewModel>.
                 FromResult(RequestResponse<StartQuizViewModel>.Ok(viewModel,result.Message)));
+        }
+
+
+        [HttpGet("{attemptId:guid}/time-remaining")]
+        public async Task<ActionResult<EndpointResponse<AttemptTimeRemainingDto>>>GetTimeRemaining(Guid attemptId,CancellationToken cancellationToken) {
+            var result = await mediator.Send(new GetAttemptTimeRemainingOrchestrator(attemptId),cancellationToken);
+
+            return StatusCode(result.StatusCode,EndpointResponse<AttemptTimeRemainingDto>.FromResult(result));
         }
     }
 }

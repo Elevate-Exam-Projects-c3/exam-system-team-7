@@ -1,6 +1,4 @@
-﻿using exam_system.Common.Enums;
-using exam_system.Domain.Entities.Quizzes;
-using exam_system.Features.Questions.AdminCreateQuestion.Orchestrators;
+﻿using exam_system.Features.Questions.AdminCreateQuestion.Orchestrators;
 using exam_system.Features.Questions.AdminDeleteQuestion.Orchestrators;
 using exam_system.Features.Questions.AdminGetQuestion.Queries;
 using exam_system.Features.Questions.AdminUpdateQuestion.Orchestrators;
@@ -8,7 +6,6 @@ using exam_system.Features.Shared;
 using exam_system.ViewModels.Options;
 using exam_system.ViewModels.Questions;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace exam_system.Features.Questions.Controllers {
