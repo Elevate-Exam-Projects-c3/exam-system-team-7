@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using exam_system.Common.Enums;
 using exam_system.Domain.Entities.Identity;
 using exam_system.Features.Identity.Login.Commands;
@@ -22,17 +23,20 @@ public class LoginUserOrchestrator : IRequestHandler<LoginUserCommand, RequestRe
     private readonly IPasswordHasher _passwordHasher;
     private readonly ITokenService _tokenService;
     private readonly IGenericRepository<ApplicationUser> _users;
+    private readonly JwtOptions _jwtOptions;
 
     public LoginUserOrchestrator(
         IMediator mediator,
         IPasswordHasher passwordHasher,
         ITokenService tokenService,
-        IGenericRepository<ApplicationUser> users)
+        IGenericRepository<ApplicationUser> users,
+        IOptions<JwtOptions> jwtOptions)
     {
         _mediator = mediator;
         _passwordHasher = passwordHasher;
         _tokenService = tokenService;
         _users = users;
+        _jwtOptions = jwtOptions.Value;
     }
 
     public async Task<RequestResponse<LoginResponse>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
@@ -90,17 +94,17 @@ public class LoginUserOrchestrator : IRequestHandler<LoginUserCommand, RequestRe
                 400);
         }
 
-        // Issue the token pair.
+        // Issue the token pair; the refresh TTL comes from configuration,
+        // the same source the login cookie uses.
         var accessToken = _tokenService.GenerateAccessToken(user.Id, user.Role.ToString());
 
-        var refreshTokenValue = Convert.ToBase64String(
-            System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
+        var refreshTokenValue = _tokenService.GenerateRefreshToken();
 
         await _mediator.Send(
             new CreateRefreshTokenCommand(
                 user.Id,
                 refreshTokenValue,
-                DateTime.UtcNow.AddDays(7)),
+                DateTime.UtcNow.AddDays(_jwtOptions.RefreshTokenDays)),
             cancellationToken);
 
         return RequestResponse<LoginResponse>.Ok(

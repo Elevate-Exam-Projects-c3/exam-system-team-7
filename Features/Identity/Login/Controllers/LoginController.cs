@@ -30,17 +30,7 @@ public class LoginController : ControllerBase
 
         if (response.Success && response.Data is not null)
         {
-            // httpOnly so client-side JavaScript cannot read the refresh token.
-            Response.Cookies.Append(
-                _jwtOptions.CookieName,
-                response.Data.RefreshToken,
-                new CookieOptions
-                {
-                    HttpOnly = true,
-                    Secure = false, // dev only; must be true behind HTTPS
-                    SameSite = SameSiteMode.Lax,
-                    Expires = DateTimeOffset.UtcNow.AddDays(_jwtOptions.RefreshTokenDays)
-                });
+            Response.SetRefreshTokenCookie(_jwtOptions, response.Data.RefreshToken);
         }
 
         return StatusCode(response.StatusCode, response);

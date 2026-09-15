@@ -1,8 +1,11 @@
 using MediatR;
-using exam_system.Domain.Entities.Identity;
 using exam_system.Features.Identity.Login.Commands;
 using exam_system.Features.Shared;
 using exam_system.Persistence.DataAccess;
+
+// The RefreshToken slice's namespace shadows the entity name inside
+// Features.Identity, so the entity gets an alias here.
+using RefreshTokenEntity = exam_system.Domain.Entities.Identity.RefreshToken;
 
 namespace exam_system.Features.Identity.Login.Handlers;
 
@@ -10,11 +13,11 @@ namespace exam_system.Features.Identity.Login.Handlers;
 public class CreateRefreshTokenCommandHandler
     : IRequestHandler<CreateRefreshTokenCommand, RequestResponse<Guid>>
 {
-    private readonly IGenericRepository<RefreshToken> _refreshTokens;
+    private readonly IGenericRepository<RefreshTokenEntity> _refreshTokens;
     private readonly IUnitOfWork _unitOfWork;
 
     public CreateRefreshTokenCommandHandler(
-        IGenericRepository<RefreshToken> refreshTokens,
+        IGenericRepository<RefreshTokenEntity> refreshTokens,
         IUnitOfWork unitOfWork)
     {
         _refreshTokens = refreshTokens;
@@ -23,7 +26,7 @@ public class CreateRefreshTokenCommandHandler
 
     public async Task<RequestResponse<Guid>> Handle(CreateRefreshTokenCommand request, CancellationToken cancellationToken)
     {
-        var refreshToken = new RefreshToken
+        var refreshToken = new RefreshTokenEntity
         {
             UserId = request.UserId,
             Token = request.Token,
