@@ -16,8 +16,10 @@ namespace exam_system.Features.Quizzes.GetQuiz.Handlers {
 
      
 
-        async Task<RequestResponse<bool>> IRequestHandler<CheckIfQuizExistQuery, RequestResponse<bool>>.Handle(CheckIfQuizExistQuery request, CancellationToken cancellationToken) {
-            return RequestResponse<bool>.Ok( await quizRepository.GetAll().AnyAsync(q => q.Id == request.QuizId && !q.IsDeleted, cancellationToken),
+      async Task<RequestResponse<bool>> IRequestHandler<CheckIfQuizExistQuery,
+            RequestResponse<bool>>.Handle(CheckIfQuizExistQuery request, CancellationToken cancellationToken) {
+            return RequestResponse<bool>.Ok( await quizRepository.GetAll().AnyAsync(q => q.Id == request.QuizId &&
+            !q.IsDeleted, cancellationToken),
                 "Quiz existence checked successfully."
             );
         }

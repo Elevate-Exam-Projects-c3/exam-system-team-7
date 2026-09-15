@@ -68,7 +68,9 @@ namespace exam_system.Migrations
 
                     b.HasIndex("QuizId");
 
-                    b.HasIndex("StudentId", "QuizId");
+                    b.HasIndex("StudentId", "QuizId")
+                        .IsUnique()
+                        .HasFilter("[Status] = 1");
 
                     b.ToTable("QuizAttempts", (string)null);
                 });

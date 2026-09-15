@@ -7,6 +7,7 @@ using exam_system.Features.Diplomas.AdminCreateDiploma.Commands;
 using exam_system.Features.Diplomas.AdminDeleteDiploma.Orchestrators;
 using exam_system.Features.Diplomas.AdminUpdateDiploma.Commands;
 using exam_system.Features.Diplomas.BrowseDiplomas.Queries;
+using exam_system.Features.Diplomas.EnrollDiploma.Orchestrators;
 using exam_system.Features.Diplomas.GetDiplomaDetail.Queries;
 using exam_system.Features.Shared;
 using exam_system.ViewModels.Diplomas.BrowseDiplomas;
@@ -15,6 +16,8 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using System.ComponentModel;
 
 namespace exam_system.Features.Diplomas.Controllers
 {
@@ -95,6 +98,27 @@ namespace exam_system.Features.Diplomas.Controllers
             var response = EndpointResponse<PaginatedResult<BrowseDiplomaItemDto>>.FromResult(result);
 
             return StatusCode(  response.StatusCode,   response);
+        }
+
+
+        [HttpPost("{id:guid}/enroll")]
+        //[Authorize(Roles = nameof(UserRole.Student))]
+        public async Task<IActionResult> Enroll(Guid id,CancellationToken cancellationToken)
+        {
+            var studentId = Guid.TryParse("CCCCCCCC-3333-3333-3333-CCCCCCCCCCCC", out var userId) ? userId : (Guid?)null;
+            //HttpContext.Items["UserId"] as Guid?;
+
+            if (!studentId.HasValue)
+            {
+                return Unauthorized();
+            }
+
+            var result = await _mediator.Send(
+                new EnrollDiplomaOrchestrator( id, studentId.Value), cancellationToken);
+
+            var response = EndpointResponse<bool>.FromResult(result);
+
+            return StatusCode( response.StatusCode, response);
         }
 
     }

@@ -9,6 +9,6 @@ namespace exam_system.Features.Quizzes.AdminCreateQuiz.Orchestrators {
         int? PassScore,
         int? MaxAttempts,
         DateTime StartDate,
-        DateTime EndDate ) : IRequest<RequestResponse<bool>> {
+        DateTime EndDate ) : IRequest<RequestResponse<Guid>> {
      }
 }
