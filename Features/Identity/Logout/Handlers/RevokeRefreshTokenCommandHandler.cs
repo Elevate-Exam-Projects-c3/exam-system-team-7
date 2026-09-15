@@ -10,8 +10,7 @@ using RefreshTokenEntity = exam_system.Domain.Entities.Identity.RefreshToken;
 
 namespace exam_system.Features.Identity.Logout.Handlers;
 
-// Flips ONE RefreshTokens row to IsRevoked=true. An unknown or already
-// revoked token is a no-op, so logout stays idempotent.
+// Revokes one refresh row; an unknown or revoked token is a no-op.
 public class RevokeRefreshTokenCommandHandler
     : IRequestHandler<RevokeRefreshTokenCommand, RequestResponse<bool>>
 {

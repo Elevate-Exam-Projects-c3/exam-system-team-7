@@ -6,8 +6,7 @@ using exam_system.Features.Shared;
 
 namespace exam_system.Features.Identity.Logout.Controllers;
 
-// Logout revokes the cookie's refresh token and clears the cookie;
-// always succeeds so logout is idempotent.
+// Logout revokes the current refresh token and clears the cookie.
 [ApiController]
 [Route("api/auth")]
 public class LogoutController : ControllerBase
@@ -21,7 +20,6 @@ public class LogoutController : ControllerBase
         _jwtOptions = jwtOptions.Value;
     }
 
-    // POST /api/auth/logout
     [HttpPost("logout")]
     public async Task<IActionResult> Logout(CancellationToken cancellationToken)
     {

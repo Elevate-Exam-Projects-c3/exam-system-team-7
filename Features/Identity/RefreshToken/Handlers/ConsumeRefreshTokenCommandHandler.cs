@@ -9,8 +9,7 @@ using RefreshTokenEntity = exam_system.Domain.Entities.Identity.RefreshToken;
 
 namespace exam_system.Features.Identity.RefreshToken.Handlers;
 
-// Flips ONE RefreshTokens row to IsUsed=true and records its replacement,
-// leaving the rotation chain readable in the database.
+// Marks one refresh row as used and records its replacement.
 public class ConsumeRefreshTokenCommandHandler
     : IRequestHandler<ConsumeRefreshTokenCommand, RequestResponse<Guid>>
 {

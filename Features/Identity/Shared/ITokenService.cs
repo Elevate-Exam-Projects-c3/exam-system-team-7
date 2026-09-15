@@ -6,6 +6,6 @@ public interface ITokenService
     // Signed JWT with sub / role / jti claims.
     string GenerateAccessToken(Guid userId, string role);
 
-    // Opaque 256-bit refresh token value; the RefreshTokens row is the source of truth.
+    // Opaque random refresh token value.
     string GenerateRefreshToken();
 }

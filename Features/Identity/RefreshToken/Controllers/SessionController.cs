@@ -6,8 +6,7 @@ using exam_system.Features.Shared;
 
 namespace exam_system.Features.Identity.RefreshToken.Controllers;
 
-// Refresh endpoint; the refresh token travels only in the httpOnly
-// cookie, never in a request body.
+// Refresh endpoint; the refresh token travels only in the cookie.
 [ApiController]
 [Route("api/auth")]
 public class SessionController : ControllerBase
@@ -21,8 +20,7 @@ public class SessionController : ControllerBase
         _jwtOptions = jwtOptions.Value;
     }
 
-    // POST /api/auth/refresh-token — rotates the cookie's refresh token
-    // and renews the access token.
+    // POST /api/auth/refresh-token
     [HttpPost("refresh-token")]
     public async Task<IActionResult> Refresh(CancellationToken cancellationToken)
     {
@@ -32,7 +30,6 @@ public class SessionController : ControllerBase
 
         if (response.Success && response.Data is not null)
         {
-            // The rotated token replaces the cookie value in the same response.
             Response.SetRefreshTokenCookie(_jwtOptions, response.Data.RefreshToken);
         }
 

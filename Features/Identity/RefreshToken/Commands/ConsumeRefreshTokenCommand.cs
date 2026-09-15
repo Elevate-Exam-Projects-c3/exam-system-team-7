@@ -3,6 +3,6 @@ using exam_system.Features.Shared;
 
 namespace exam_system.Features.Identity.RefreshToken.Commands;
 
-// Marks one RefreshTokens row as used and records the token that replaced it.
+// Marks the consumed refresh row and records its replacement.
 public record ConsumeRefreshTokenCommand(Guid TokenId, string ReplacedByToken)
     : IRequest<RequestResponse<Guid>>;

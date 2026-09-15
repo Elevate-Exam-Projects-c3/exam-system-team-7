@@ -6,8 +6,7 @@ using exam_system.Features.Identity.Shared;
 
 namespace exam_system.Features.Identity.Login.Controllers;
 
-// Login endpoint; issues the access token in the body and the refresh
-// token as an httpOnly cookie.
+// Login endpoint; access token in the body, refresh token in the cookie.
 [ApiController]
 [Route("api/auth")]
 public class LoginController : ControllerBase
@@ -21,7 +20,7 @@ public class LoginController : ControllerBase
         _jwtOptions = jwtOptions.Value;
     }
 
-    // POST /api/auth/login — body: { email, password }
+    // POST /api/auth/login
     [HttpPost("login")]
     [EnableRateLimiting("auth")]
     public async Task<IActionResult> Login([FromBody] LoginUserCommand command, CancellationToken cancellationToken)

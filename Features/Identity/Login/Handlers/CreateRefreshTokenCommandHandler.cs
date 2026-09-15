@@ -9,7 +9,7 @@ using RefreshTokenEntity = exam_system.Domain.Entities.Identity.RefreshToken;
 
 namespace exam_system.Features.Identity.Login.Handlers;
 
-// Inserts one RefreshTokens row; the token value comes from the Orchestrator.
+// Inserts one refresh row; the token value comes from the orchestrator.
 public class CreateRefreshTokenCommandHandler
     : IRequestHandler<CreateRefreshTokenCommand, RequestResponse<Guid>>
 {

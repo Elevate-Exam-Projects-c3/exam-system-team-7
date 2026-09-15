@@ -1,6 +1,6 @@
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using exam_system.Features.Identity.Register.Commands;
+using exam_system.Features.Identity.Register.Queries;
 using exam_system.Features.Identity.Shared;
 using exam_system.Features.Shared;
 using exam_system.Persistence.DataAccess;
@@ -16,18 +16,15 @@ public class VerifyOtpOrchestrator : IRequestHandler<VerifyOtpCommand, RequestRe
     private readonly IMediator _mediator;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IPasswordHasher _passwordHasher;
-    private readonly IGenericRepository<Domain.Entities.Identity.EmailVerificationOtp> _otps;
 
     public VerifyOtpOrchestrator(
         IMediator mediator,
         IUnitOfWork unitOfWork,
-        IPasswordHasher passwordHasher,
-        IGenericRepository<Domain.Entities.Identity.EmailVerificationOtp> otps)
+        IPasswordHasher passwordHasher)
     {
         _mediator = mediator;
         _unitOfWork = unitOfWork;
         _passwordHasher = passwordHasher;
-        _otps = otps;
     }
 
     public async Task<RequestResponse<Guid>> Handle(VerifyOtpCommand request, CancellationToken cancellationToken)
@@ -36,10 +33,7 @@ public class VerifyOtpOrchestrator : IRequestHandler<VerifyOtpCommand, RequestRe
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
 
         // Only the most recently issued unused OTP is valid.
-        var otp = await _otps
-            .Get(o => o.Email == normalizedEmail && !o.IsUsed)
-            .OrderByDescending(o => o.CreatedAt)
-            .FirstOrDefaultAsync(cancellationToken);
+        var otp = await _mediator.Send(new GetLatestOtpByEmailQuery(normalizedEmail, UnusedOnly: true), cancellationToken);
 
         // Generic answer: never reveal whether the email exists.
         if (otp is null)

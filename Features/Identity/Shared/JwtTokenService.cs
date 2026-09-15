@@ -38,8 +38,7 @@ public class JwtTokenService : ITokenService
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-    // Opaque 256-bit value, base64-encoded — the secret IS the random value,
-    // so it is never hashed or derived, just stored once per login.
+    // Random 256-bit value, base64-encoded.
     public string GenerateRefreshToken()
     {
         return Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));

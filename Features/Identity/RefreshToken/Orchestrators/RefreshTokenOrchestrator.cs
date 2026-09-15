@@ -1,42 +1,33 @@
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using exam_system.Features.Identity.Login.Commands;
-
-// The RefreshToken slice's namespace shadows the entity name inside
-// Features.Identity, so the entity gets an alias here.
-using RefreshTokenEntity = exam_system.Domain.Entities.Identity.RefreshToken;
 using exam_system.Features.Identity.RefreshToken.Commands;
+using exam_system.Features.Identity.RefreshToken.Dtos;
+using exam_system.Features.Identity.RefreshToken.Queries;
 using exam_system.Features.Identity.Shared;
 using exam_system.Features.Shared;
 using exam_system.Persistence.DataAccess;
 
 namespace exam_system.Features.Identity.RefreshToken.Orchestrators;
 
-// Refresh flow: validate the stored token (unused, unrevoked, unexpired),
-// then rotate it — consume the old row and insert the new one in ONE
-// transaction. Reuse of an already-used token is treated as a compromise
-// signal and rejected.
+// Refresh flow: gates + rotation, both writes in one transaction.
 public class RefreshTokenOrchestrator
     : IRequestHandler<RefreshTokenCommand, RequestResponse<RefreshResponse>>
 {
     private readonly IMediator _mediator;
     private readonly ITokenService _tokenService;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IGenericRepository<RefreshTokenEntity> _refreshTokens;
     private readonly JwtOptions _jwtOptions;
 
     public RefreshTokenOrchestrator(
         IMediator mediator,
         ITokenService tokenService,
         IUnitOfWork unitOfWork,
-        IGenericRepository<RefreshTokenEntity> refreshTokens,
         IOptions<JwtOptions> jwtOptions)
     {
         _mediator = mediator;
         _tokenService = tokenService;
         _unitOfWork = unitOfWork;
-        _refreshTokens = refreshTokens;
         _jwtOptions = jwtOptions.Value;
     }
 
@@ -47,19 +38,14 @@ public class RefreshTokenOrchestrator
             return Invalid("Invalid refresh token.");
         }
 
-        // Plain equality on the unique token index; the value itself is the secret.
-        var row = await _refreshTokens
-            .Get(r => r.Token == request.RefreshToken)
-            .Include(r => r.User)
-            .FirstOrDefaultAsync(cancellationToken);
+        var row = await _mediator.Send(new GetRefreshTokenByTokenQuery(request.RefreshToken), cancellationToken);
 
         if (row is null)
         {
             return Invalid("Invalid refresh token.");
         }
 
-        // A used token must never come back: either a replay attack or a
-        // stolen pair racing the real client. Rejecting it kills the replay.
+        // A used token coming back = replay; reject it.
         if (row.IsUsed)
         {
             return Invalid("Refresh token has already been used.");
@@ -75,16 +61,10 @@ public class RefreshTokenOrchestrator
             return Invalid("Refresh token has expired. Please log in again.");
         }
 
-        var user = row.User;
-        if (user is null)
-        {
-            return Invalid("Invalid refresh token.");
-        }
-
-        var accessToken = _tokenService.GenerateAccessToken(user.Id, user.Role.ToString());
+        var accessToken = _tokenService.GenerateAccessToken(row.UserId, row.UserRole);
         var newRefreshToken = _tokenService.GenerateRefreshToken();
 
-        // Rotation is two writes: consume the old row and insert the new one.
+        // Rotation is two writes, so they go in one transaction.
         await _unitOfWork.BeginTransactionAsync();
         var committed = false;
         try
@@ -95,7 +75,7 @@ public class RefreshTokenOrchestrator
 
             await _mediator.Send(
                 new CreateRefreshTokenCommand(
-                    user.Id,
+                    row.UserId,
                     newRefreshToken,
                     DateTime.UtcNow.AddDays(_jwtOptions.RefreshTokenDays)),
                 cancellationToken);
@@ -116,7 +96,7 @@ public class RefreshTokenOrchestrator
         }
     }
 
-    // Every refresh rejection is an authentication failure → 401.
+    // Every refresh rejection is an authentication failure.
     private static RequestResponse<RefreshResponse> Invalid(string message)
     {
         return RequestResponse<RefreshResponse>.Fail(message, 401);

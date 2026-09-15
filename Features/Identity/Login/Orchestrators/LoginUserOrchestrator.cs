@@ -1,19 +1,14 @@
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using exam_system.Common.Enums;
-using exam_system.Domain.Entities.Identity;
 using exam_system.Features.Identity.Login.Commands;
 using exam_system.Features.Identity.Shared;
+using exam_system.Features.Identity.Shared.Queries;
 using exam_system.Features.Shared;
-using exam_system.Persistence.DataAccess;
 
 namespace exam_system.Features.Identity.Login.Orchestrators;
 
-// Login flow: verify credentials, apply the 5-failures / 15-minutes
-// lockout, then issue the access token and create a refresh token row.
-// Each login gets its own refresh token, so multiple devices can stay
-// signed in; tokens are revoked at logout or password reset.
+// Login flow: credentials check, lockout gates, then token issuance.
 public class LoginUserOrchestrator : IRequestHandler<LoginUserCommand, RequestResponse<LoginResponse>>
 {
     private const int MaxFailedAttempts = 5;   // lock the account at five failures
@@ -22,20 +17,17 @@ public class LoginUserOrchestrator : IRequestHandler<LoginUserCommand, RequestRe
     private readonly IMediator _mediator;
     private readonly IPasswordHasher _passwordHasher;
     private readonly ITokenService _tokenService;
-    private readonly IGenericRepository<ApplicationUser> _users;
     private readonly JwtOptions _jwtOptions;
 
     public LoginUserOrchestrator(
         IMediator mediator,
         IPasswordHasher passwordHasher,
         ITokenService tokenService,
-        IGenericRepository<ApplicationUser> users,
         IOptions<JwtOptions> jwtOptions)
     {
         _mediator = mediator;
         _passwordHasher = passwordHasher;
         _tokenService = tokenService;
-        _users = users;
         _jwtOptions = jwtOptions.Value;
     }
 
@@ -44,12 +36,9 @@ public class LoginUserOrchestrator : IRequestHandler<LoginUserCommand, RequestRe
         // Normalize the email like the register flow does.
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
 
-        var user = await _users
-            .Get(u => u.Email == normalizedEmail)
-            .FirstOrDefaultAsync(cancellationToken);
+        var user = await _mediator.Send(new GetUserByEmailQuery(normalizedEmail), cancellationToken);
 
-        // Unknown email gets the SAME generic message as a wrong password —
-        // never reveal which field is wrong.
+        // Same generic message as a wrong password — no field leaks.
         if (user is null)
         {
             return InvalidCredentials();
@@ -94,8 +83,7 @@ public class LoginUserOrchestrator : IRequestHandler<LoginUserCommand, RequestRe
                 400);
         }
 
-        // Issue the token pair; the refresh TTL comes from configuration,
-        // the same source the login cookie uses.
+        // Issue the token pair.
         var accessToken = _tokenService.GenerateAccessToken(user.Id, user.Role.ToString());
 
         var refreshTokenValue = _tokenService.GenerateRefreshToken();

@@ -1,12 +1,11 @@
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using exam_system.Common.Enums;
-using exam_system.Domain.Entities.Identity;
 using exam_system.Features.Identity.Register.Commands;
 using exam_system.Features.Identity.Register.Notifications;
+using exam_system.Features.Identity.Register.Queries;
 using exam_system.Features.Identity.Shared;
+using exam_system.Features.Identity.Shared.Queries;
 using exam_system.Features.Shared;
-using exam_system.Persistence.DataAccess;
 
 namespace exam_system.Features.Identity.Register.Orchestrators;
 
@@ -19,21 +18,15 @@ public class ResendOtpOrchestrator : IRequestHandler<ResendOtpCommand, RequestRe
     private readonly IMediator _mediator;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IOtpGenerator _otpGenerator;
-    private readonly IGenericRepository<ApplicationUser> _users;
-    private readonly IGenericRepository<EmailVerificationOtp> _otps;
 
     public ResendOtpOrchestrator(
         IMediator mediator,
         IPasswordHasher passwordHasher,
-        IOtpGenerator otpGenerator,
-        IGenericRepository<ApplicationUser> users,
-        IGenericRepository<EmailVerificationOtp> otps)
+        IOtpGenerator otpGenerator)
     {
         _mediator = mediator;
         _passwordHasher = passwordHasher;
         _otpGenerator = otpGenerator;
-        _users = users;
-        _otps = otps;
     }
 
     public async Task<RequestResponse> Handle(ResendOtpCommand request, CancellationToken cancellationToken)
@@ -46,9 +39,7 @@ public class ResendOtpOrchestrator : IRequestHandler<ResendOtpCommand, RequestRe
 
         // Only a pending account needs a code; anything else gets the
         // neutral answer with no email sent.
-        var user = await _users
-            .Get(u => u.Email == normalizedEmail)
-            .FirstOrDefaultAsync(cancellationToken);
+        var user = await _mediator.Send(new GetUserByEmailQuery(normalizedEmail), cancellationToken);
 
         if (user is null || user.AccountStatus != AccountStatus.Pending)
         {
@@ -56,10 +47,7 @@ public class ResendOtpOrchestrator : IRequestHandler<ResendOtpCommand, RequestRe
         }
 
         // Cooldown: the server enforces it, not just the client UI.
-        var latest = await _otps
-            .Get(o => o.Email == normalizedEmail)
-            .OrderByDescending(o => o.CreatedAt)
-            .FirstOrDefaultAsync(cancellationToken);
+        var latest = await _mediator.Send(new GetLatestOtpByEmailQuery(normalizedEmail), cancellationToken);
 
         if (latest is not null && latest.CreatedAt.AddSeconds(CooldownSeconds) > DateTime.UtcNow)
         {
