@@ -9,6 +9,6 @@ public class Diploma : BaseEntity
     public string? Description { get; set; }
 
     // Navigations
-    public ICollection<Quiz> Quizzes { get; set; } = new List<Quiz>();
+    public ICollection<Quiz> Quizzes { get; set; } = new List<Quiz>();  
     public ICollection<StudentEnrollment> Enrollments { get; set; } = new List<StudentEnrollment>();
 }

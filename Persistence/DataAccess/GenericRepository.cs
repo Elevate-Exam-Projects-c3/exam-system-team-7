@@ -101,4 +101,37 @@ public class GenericRepository<T> : IGenericRepository<T> where T : BaseEntity
         Delete(entity); // Use soft delete
         return Task.CompletedTask;
     }
+
+    public void SaveInclude(
+    T entity,
+    params string[] includedProperties)
+    {
+        var localEntity = _dbSet.Local
+            .FirstOrDefault(e => e.Id == entity.Id);
+
+        EntityEntry entry;
+
+        if (localEntity == null)
+        {
+            _dbSet.Attach(entity);
+
+            entry = _context.Entry(entity);
+        }
+        else
+        {
+            entry = _context.Entry(localEntity);
+
+            entry.CurrentValues.SetValues(entity);
+        }
+
+        foreach (var property in entry.Properties)
+        {
+            if (property.Metadata.IsPrimaryKey())
+                continue;
+
+            property.IsModified =
+                includedProperties.Contains(
+                    property.Metadata.Name);
+        }
+    }
 }

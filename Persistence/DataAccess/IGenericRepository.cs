@@ -17,4 +17,5 @@ public interface IGenericRepository<T> where T : BaseEntity
     void HardDelete(T entity);
     void DeleteRange(IEnumerable<T> entities);
     Task<int> CountAsync(Expression<Func<T, bool>>? criteria = null);
+    void SaveInclude( T entity,params string[] includedProperties);
 }

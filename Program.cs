@@ -5,12 +5,17 @@ using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using exam_system.Common.Middleware;
+using exam_system.Common.Validator;
 using exam_system.Domain.Entities.Diplomas;
+using exam_system.Domain.Entities.Identity;
 using exam_system.Features.Identity.Shared;
+using exam_system.Features.Quizzes.Validators;
 using exam_system.Features.Shared;
+using exam_system.Infrastructure.BackgroundJobs;
 using exam_system.Persistence;
 using exam_system.Persistence.Context;
 using exam_system.Persistence.DataAccess;
@@ -25,23 +30,23 @@ builder.Services.AddPersistenceServices(builder.Configuration);
 
 builder.Services.AddMediatR(typeof(Program).Assembly);
 
-// Register all validators so the ValidationBehavior can inject them.
+// Register all validators
 builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
-// Run ValidationBehavior before every handler.
+// Run ValidationBehavior before every handler (مسجل مرة واحدة فقط)
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
-// Password hashing via bcrypt.
+// Password hashing via bcrypt
 builder.Services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
 
-// OTP generation and email delivery.
+// OTP generation and email delivery
 builder.Services.AddSingleton<IOtpGenerator, RandomOtpGenerator>();
 
-// SMTP email delivery via MailKit.
+// SMTP email delivery via MailKit
 builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection(SmtpOptions.SectionName));
 builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();
 
-// JWT authentication: the same key signs and validates the tokens.
+// JWT authentication
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
 builder.Services.AddSingleton<ITokenService, JwtTokenService>();
 
@@ -62,8 +67,7 @@ builder.Services
         };
     });
 
-// Rate limiting for the auth endpoints: 10 requests/minute per client IP;
-// rejections return 429 + Retry-After.
+// Rate limiting
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -81,12 +85,12 @@ builder.Services.AddRateLimiter(options =>
     options.AddPolicy<string, AuthRateLimitPolicy>(AuthRateLimitPolicy.PolicyName);
 });
 
+builder.Services.AddHostedService<QuizAttemptTimeoutBackgroundService>();
+
 var app = builder.Build();
 
-// Maps ValidationException to 400 and anything else to 500.
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
-// Seed Database automatically on startup
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -102,7 +106,6 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// Enable Swagger UI in Development
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -114,11 +117,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-// Authentication first (who are you? — validates the Bearer JWT), then
-// authorization (what are you allowed to do?) — the order matters.
+
+app.UseRateLimiter(); 
+
 app.UseAuthentication();
 app.UseAuthorization();
-
 
 app.MapControllers();
 

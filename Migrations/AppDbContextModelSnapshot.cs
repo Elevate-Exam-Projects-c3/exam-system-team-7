@@ -68,7 +68,9 @@ namespace exam_system.Migrations
 
                     b.HasIndex("QuizId");
 
-                    b.HasIndex("StudentId", "QuizId");
+                    b.HasIndex("StudentId", "QuizId")
+                        .IsUnique()
+                        .HasFilter("[Status] = 1");
 
                     b.ToTable("QuizAttempts", (string)null);
                 });
@@ -521,6 +523,9 @@ namespace exam_system.Migrations
                     b.Property<int>("DurationMinutes")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Instructions")
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
@@ -531,14 +536,21 @@ namespace exam_system.Migrations
                     b.Property<int?>("MaxAttempts")
                         .HasColumnType("int");
 
-                    b.Property<int>("PassScore")
-                        .HasColumnType("int");
+                    b.Property<int?>("PassScore")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(60);
 
                     b.Property<DateTime?>("PublishedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("Status")
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
 
                     b.Property<string>("Title")
                         .IsRequired()
