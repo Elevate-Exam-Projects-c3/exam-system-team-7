@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace exam_system.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class FirstTestMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -167,10 +167,12 @@ namespace exam_system.Migrations
                     Title = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Instructions = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true),
                     DurationMinutes = table.Column<int>(type: "int", nullable: false),
-                    PassScore = table.Column<int>(type: "int", nullable: false),
+                    PassScore = table.Column<int>(type: "int", nullable: true, defaultValue: 60),
                     MaxAttempts = table.Column<int>(type: "int", nullable: true),
-                    Status = table.Column<int>(type: "int", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false, defaultValue: 1),
                     PublishedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),

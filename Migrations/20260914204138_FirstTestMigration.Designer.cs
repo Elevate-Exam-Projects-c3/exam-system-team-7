@@ -12,8 +12,8 @@ using exam_system.Persistence.Context;
 namespace exam_system.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260910143517_start-end-date")]
-    partial class startenddate
+    [Migration("20260914204138_FirstTestMigration")]
+    partial class FirstTestMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -538,7 +538,9 @@ namespace exam_system.Migrations
                         .HasColumnType("int");
 
                     b.Property<int?>("PassScore")
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(60);
 
                     b.Property<DateTime?>("PublishedAt")
                         .HasColumnType("datetime2");
@@ -547,7 +549,9 @@ namespace exam_system.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<int>("Status")
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
 
                     b.Property<string>("Title")
                         .IsRequired()
