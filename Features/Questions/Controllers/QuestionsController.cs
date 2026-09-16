@@ -1,4 +1,5 @@
-﻿using exam_system.Features.Questions.AdminCreateQuestion.Orchestrators;
+﻿using exam_system.Dtos.Options;
+using exam_system.Features.Questions.AdminCreateQuestion.Orchestrators;
 using exam_system.Features.Questions.AdminDeleteQuestion.Orchestrators;
 using exam_system.Features.Questions.AdminGetQuestion.Queries;
 using exam_system.Features.Questions.AdminUpdateQuestion.Orchestrators;
@@ -23,16 +24,13 @@ namespace exam_system.Features.Questions.Controllers {
         [HttpPost("{quizId:guid}/questions")]
         public async Task<ActionResult<EndpointResponse<Guid>>> CreateQuestion(Guid quizId, [FromBody] CreateQuestionViewModel createQuestion, CancellationToken cancellationToken) {
             try {
-                var result = await mediator.Send(
-                    new CreateQuestionsAndOptionsOrchestrator(
-                        quizId,
-                        createQuestion.Text,
-                        createQuestion.Explanation,
-                        createQuestion.OrderIndex,
-                        createQuestion.Options
+                var result = await mediator.Send(new CreateQuestionsAndOptionsOrchestrator(
+                                quizId,createQuestion.Text,createQuestion.Explanation,createQuestion.OrderIndex,createQuestion.Options
+                            .Select(x => new CreateOptionDto {
+                              OptionText = x.OptionText,
+                            IsCorrect = x.IsCorrect}).ToList()),cancellationToken);
 
-                    ), cancellationToken
-                );
+
                 return StatusCode(result.StatusCode,EndpointResponse<Guid>.FromResult(result));
 
             } catch (FluentValidation.ValidationException ex) {
