@@ -29,7 +29,7 @@ public class GlobalExceptionHandlingMiddleware
             await context.Response.WriteAsJsonAsync(
                 RequestResponse<object>.Fail("One or more validation errors occurred.", 400, errors));
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             context.Response.StatusCode = 500;
             await context.Response.WriteAsJsonAsync(

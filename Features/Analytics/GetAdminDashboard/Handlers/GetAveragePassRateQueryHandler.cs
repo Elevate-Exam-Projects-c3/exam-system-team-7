@@ -26,6 +26,7 @@ namespace exam_system.Features.Analytics.GetAdminDashboard.Handlers
             var passedAttempts = await _genericRepository.GetAll()
                 .Where(e => e.Status == AttemptStatus.Submitted && e.Passed == true).CountAsync();
 
+
             return passedAttempts/totalAttepts *100;
         }
     }

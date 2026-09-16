@@ -33,8 +33,6 @@ builder.Services.AddMediatR(typeof(Program).Assembly);
 // Register all validators
 builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
-// Run ValidationBehavior before every handler (مسجل مرة واحدة فقط)
-builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
 // Password hashing via bcrypt
 builder.Services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
