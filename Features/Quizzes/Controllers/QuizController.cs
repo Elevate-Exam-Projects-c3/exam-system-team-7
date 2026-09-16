@@ -1,5 +1,6 @@
+﻿using exam_system.Features.Quizzes.AdminCreateQuiz.Commands;
+using exam_system.Features.Quizzes.AdminCreateQuiz.Orchestrators;
 ﻿using exam_system.Dtos.Quizes;
-using exam_system.Features.Quizzes.AdminCreateQuiz.Commands;
 using exam_system.Features.Quizzes.AdminDeleteQuiz.Commands;
 using exam_system.Features.Quizzes.AdminPublishQuiz.Orchestrators;
 using exam_system.Features.Quizzes.AdminQuizPublishCheck.Orchestrators;
@@ -25,7 +26,7 @@ namespace exam_system.Features.Quizzes.Controllers {
         public async Task<ActionResult<EndpointResponse<Guid>>> CreateQuiz([FromBody] CreateQuizViewModel createQuiz,CancellationToken cancellationToken) {
             try {
                 var result = await mediator.Send(
-                    new CreateQuizCommand(
+                    new CreateQuizOrchestrator(
                         createQuiz.DiplomaId,
                         createQuiz.Title,
                         createQuiz.Instructions,

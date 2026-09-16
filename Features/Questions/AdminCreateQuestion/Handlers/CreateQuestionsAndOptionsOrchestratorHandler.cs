@@ -41,14 +41,13 @@ namespace exam_system.Features.Questions.AdminCreateQuestion.Handlers {
 
                 var questionId = question.Data;
 
-                foreach (var option in request.Options) {
-                    var optionResult = await mediator.Send(new CreateOptionsCommand(questionId, option.OptionText, option.IsCorrect), cancellationToken);
+               var optionResult = await mediator.Send(new CreateOptionsCommand(questionId,request.Options), cancellationToken);
 
-                    if (!optionResult.Success) {
+               if (!optionResult.Success) {
                         await unitOfWork.RollbackTransactionAsync();
                         return RequestResponse<Guid>.Fail(optionResult.Message, optionResult.StatusCode);
                     }
-                }
+                
 
               var result = await unitOfWork.SaveChangesAsync();
 
