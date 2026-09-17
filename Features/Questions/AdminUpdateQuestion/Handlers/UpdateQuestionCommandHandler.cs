@@ -3,6 +3,7 @@ using exam_system.Features.Questions.AdminUpdateQuestion.Commands;
 using exam_system.Features.Shared;
 using exam_system.Persistence.DataAccess;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace exam_system.Features.Questions.AdminUpdateQuestion.Handlers {
     public class UpdateQuestionCommandHandler: IRequestHandler<UpdateQuestionCommand, RequestResponse<Guid>> {
@@ -16,9 +17,9 @@ namespace exam_system.Features.Questions.AdminUpdateQuestion.Handlers {
 
         public async Task<RequestResponse<Guid>> Handle(UpdateQuestionCommand request,CancellationToken cancellationToken) {
 
-            var question = questionRepository
+            var question = await questionRepository
                 .GetAll()
-                .FirstOrDefault(q =>
+                .FirstOrDefaultAsync(q =>
                     q.Id == request.QuestionId &&
                     !q.IsDeleted);
 
@@ -28,11 +29,9 @@ namespace exam_system.Features.Questions.AdminUpdateQuestion.Handlers {
 
             question.Text = request.Text.Trim();
 
-            question.Explanation =
-                request.Explanation?.Trim();
+            question.Explanation = request.Explanation?.Trim();
 
-            question.OrderIndex =
-                request.OrderIndex;
+            question.OrderIndex = request.OrderIndex;
 
             questionRepository.Update(question);
 
