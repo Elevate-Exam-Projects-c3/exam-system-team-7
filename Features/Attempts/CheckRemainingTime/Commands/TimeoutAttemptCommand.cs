@@ -1,8 +1,8 @@
-﻿using exam_system.Dtos.Attempts;
-using exam_system.Features.Shared;
+﻿using exam_system.Features.Shared;
 using MediatR;
 
 namespace exam_system.Features.Attempts.CheckRemainingTime.Commands {
-    public record TimeoutAttemptCommand (Guid attemptId ): IRequest<RequestResponse<bool>> {
-    }
+    public record TimeoutAttemptCommand (Guid attemptId) : IRequest<RequestResponse<bool>> {
+
+    }    
 }

@@ -221,6 +221,11 @@ public class StudentQuestionAnswerConfiguration : IEntityTypeConfiguration<Stude
         builder.ToTable("StudentQuestionAnswers");
         builder.HasKey(a => a.Id);
 
+        builder.HasIndex(x => new {
+            x.AttemptId,
+            x.QuestionId
+        }).IsUnique();
+
         builder.HasOne(a => a.Attempt)
             .WithMany(att => att.Answers)
             .HasForeignKey(a => a.AttemptId)

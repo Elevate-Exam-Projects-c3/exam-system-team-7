@@ -1,24 +1,15 @@
-using System.Reflection;
-using System.Text;
-using System.Threading.RateLimiting;
-using FluentValidation;
-using MediatR;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using exam_system.Common.Middleware;
-using exam_system.Common.Validator;
-using exam_system.Domain.Entities.Diplomas;
-using exam_system.Domain.Entities.Identity;
 using exam_system.Features.Identity.Shared;
-using exam_system.Features.Quizzes.Validators;
 using exam_system.Features.Shared;
 using exam_system.Infrastructure.BackgroundJobs;
 using exam_system.Persistence;
 using exam_system.Persistence.Context;
-using exam_system.Persistence.DataAccess;
+using FluentValidation;
+using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Reflection;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,9 +23,6 @@ builder.Services.AddMediatR(typeof(Program).Assembly);
 
 // Register all validators
 builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
-
-// Run ValidationBehavior before every handler (مسجل مرة واحدة فقط)
-builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
 // Password hashing via bcrypt
 builder.Services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();

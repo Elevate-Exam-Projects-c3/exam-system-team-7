@@ -1,6 +1,5 @@
 ﻿using exam_system.Common.Enums;
 using exam_system.Dtos.Attempts;
-using exam_system.Features.Attempts.CheckRemainingTime.Commands;
 using exam_system.Features.Attempts.CheckRemainingTime.Orchestrators;
 using exam_system.Features.Attempts.GetOldAttempt.Queries;
 using exam_system.Features.Shared;
@@ -40,7 +39,7 @@ namespace exam_system.Features.Attempts.CheckRemainingTime.Handlers {
 
 
             if (timeNow > attempt.Deadline) {
-       var expiredResponse = new AttemptTimeRemainingDto {
+                  var expiredResponse = new AttemptTimeRemainingDto {
                     AttemptId = request.attemptId,
                     ServerTimeUtc = timeNow,
                     Deadline = attempt.Deadline,
@@ -58,7 +57,7 @@ namespace exam_system.Features.Attempts.CheckRemainingTime.Handlers {
                 AttemptId = request.attemptId,
                 ServerTimeUtc = timeNow,
                 Deadline = attempt.Deadline,
-              RemainingSeconds = Math.Max(0,remainingSeconds),
+                RemainingSeconds = Math.Max(0,remainingSeconds),
                 Status = attempt.Status
             };
 
