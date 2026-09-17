@@ -1,6 +1,9 @@
 ﻿using exam_system.Features.Quizzes.AdminCreateQuiz.Commands;
 using exam_system.Features.Quizzes.AdminCreateQuiz.Orchestrators;
+﻿using exam_system.Dtos.Quizes;
 using exam_system.Features.Quizzes.AdminDeleteQuiz.Commands;
+using exam_system.Features.Quizzes.AdminPublishQuiz.Orchestrators;
+using exam_system.Features.Quizzes.AdminQuizPublishCheck.Orchestrators;
 using exam_system.Features.Quizzes.AdminUpdateQuiz.Commands;
 using exam_system.Features.Shared;
 using exam_system.ViewModels.Quizes;
@@ -110,5 +113,23 @@ namespace exam_system.Features.Quizzes.Controllers {
 
             return StatusCode(result.StatusCode,EndpointResponse<bool>.FromResult(result));
         }
+
+        [HttpGet("/admin/quizzes/{quizId:guid}/publish-check")]
+        // [Authorize(Roles = nameof(UserRole.Admin))]
+        public async Task<ActionResult<EndpointResponse<QuizPublishCheckDto>>> GetPublishCheck(Guid quizId,CancellationToken cancellationToken) 
+        {
+            var result = await mediator.Send(new QuizPublishCheckListOrchestrator(quizId), cancellationToken);
+
+            return StatusCode(result.StatusCode, EndpointResponse<QuizPublishCheckDto>.FromResult(result));
+        }
+
+        [HttpPatch("/admin/quizzes/{quizId:guid}/publish")]
+        // [Authorize(Roles = nameof(UserRole.Admin))]
+        public async Task<ActionResult<EndpointResponse<Guid>>> PublishQuiz(Guid quizId, CancellationToken cancellationToken) {
+            var result = await mediator.Send(new AdminPublishQuizOrchestrator(quizId), cancellationToken);
+
+            return StatusCode(result.StatusCode, EndpointResponse<Guid>.FromResult(result));
+        }
+
     }
 }
