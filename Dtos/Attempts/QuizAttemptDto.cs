@@ -1,4 +1,6 @@
-﻿namespace exam_system.Dtos.Attempts {
+﻿using exam_system.Common.Enums;
+
+namespace exam_system.Dtos.Attempts {
     public class QuizAttemptDto {
 
         public Guid QuizId { get; set; }
@@ -7,8 +9,7 @@
         public DateTime? SubmittedAt { get; set; }
         public double? Score { get; set; }
         public bool? Passed { get; set; }
-
-
+        public AttemptStatus Status { get; set; }
 
 
     }
