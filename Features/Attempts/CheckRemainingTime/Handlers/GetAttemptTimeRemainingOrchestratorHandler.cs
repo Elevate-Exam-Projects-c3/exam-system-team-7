@@ -4,7 +4,6 @@ using exam_system.Features.Attempts.CheckRemainingTime.Commands;
 using exam_system.Features.Attempts.CheckRemainingTime.Orchestrators;
 using exam_system.Features.Attempts.GetOldAttempt.Queries;
 using exam_system.Features.Shared;
-using exam_system.Persistence.DataAccess;
 using MediatR;
 
 namespace exam_system.Features.Attempts.CheckRemainingTime.Handlers {
@@ -41,13 +40,7 @@ namespace exam_system.Features.Attempts.CheckRemainingTime.Handlers {
 
 
             if (timeNow > attempt.Deadline) {
-
-                var timeoutResult = await mediator.Send(new TimeoutAttemptCommand(request.attemptId),cancellationToken);
-
-                if (!timeoutResult.Success) 
-                    return RequestResponse<AttemptTimeRemainingDto>.Fail(timeoutResult.Message,timeoutResult.StatusCode);
-
-                var expiredResponse = new AttemptTimeRemainingDto {
+       var expiredResponse = new AttemptTimeRemainingDto {
                     AttemptId = request.attemptId,
                     ServerTimeUtc = timeNow,
                     Deadline = attempt.Deadline,
