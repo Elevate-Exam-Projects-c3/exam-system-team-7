@@ -1,13 +1,16 @@
-﻿using exam_system.Features.Quizzes.AdminCreateQuiz.Commands;
+﻿using exam_system.Common.Enums;
+using exam_system.Features.Quizzes.AdminCreateQuiz.Commands;
 using exam_system.Features.Quizzes.AdminCreateQuiz.Orchestrators;
 ﻿using exam_system.Dtos.Quizes;
 using exam_system.Features.Quizzes.AdminDeleteQuiz.Commands;
 using exam_system.Features.Quizzes.AdminPublishQuiz.Orchestrators;
 using exam_system.Features.Quizzes.AdminQuizPublishCheck.Orchestrators;
+using exam_system.Features.Quizzes.AdminUnpublishQuiz.Orchestrators;
 using exam_system.Features.Quizzes.AdminUpdateQuiz.Commands;
 using exam_system.Features.Shared;
 using exam_system.ViewModels.Quizes;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace exam_system.Features.Quizzes.Controllers {
@@ -125,9 +128,18 @@ namespace exam_system.Features.Quizzes.Controllers {
 
         [HttpPatch("/admin/quizzes/{quizId:guid}/publish")]
         // [Authorize(Roles = nameof(UserRole.Admin))]
-        public async Task<ActionResult<EndpointResponse<Guid>>> PublishQuiz(Guid quizId, CancellationToken cancellationToken) {
+        public async Task<ActionResult<EndpointResponse<Guid>>> PublishQuiz(Guid quizId, CancellationToken cancellationToken) 
+        {
             var result = await mediator.Send(new AdminPublishQuizOrchestrator(quizId), cancellationToken);
 
+            return StatusCode(result.StatusCode, EndpointResponse<Guid>.FromResult(result));
+        }
+
+        [HttpPatch("/api/admin/quizzes/{quizId:guid}/unpublish")]
+        [Authorize(Roles = nameof(UserRole.Admin))]
+        public async Task<ActionResult<EndpointResponse<Guid>>> UnpublishQuiz(Guid quizId, CancellationToken cancellationToken)
+        {
+            var result = await mediator.Send(new AdminUnpublishQuizOrchestrator(quizId), cancellationToken);
             return StatusCode(result.StatusCode, EndpointResponse<Guid>.FromResult(result));
         }
 
