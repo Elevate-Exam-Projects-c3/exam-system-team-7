@@ -5,7 +5,7 @@ using exam_system.Features.Shared;
 using MediatR;
 
 namespace exam_system.Features.Quizzes.AdminCreateQuiz.Handlers {
-    public class CreateQuizOrchestratorHandler : IRequestHandler<CreateQuizOrchestrator, RequestResponse<bool>> {
+    public class CreateQuizOrchestratorHandler : IRequestHandler<CreateQuizOrchestrator, RequestResponse<Guid>> {
 
        private readonly IMediator mediator;
 
@@ -13,14 +13,14 @@ namespace exam_system.Features.Quizzes.AdminCreateQuiz.Handlers {
             this.mediator = mediator;
 
         }
-        public async Task<RequestResponse<bool>> Handle(CreateQuizOrchestrator request, CancellationToken cancellationToken) {
+        public async Task<RequestResponse<Guid>> Handle(CreateQuizOrchestrator request, CancellationToken cancellationToken) {
 
             var diploma =  await mediator.Send(new CheckIfDiplomaExistQuery(request.DiplomaId));
 
             if (!diploma.Data)
-                    throw new KeyNotFoundException($"Diploma with ID {request.DiplomaId} not found.");
+                    return RequestResponse<Guid>.Fail(diploma.Message, StatusCodes.Status404NotFound);
 
-           var result =  await mediator.Send(new CreateQuizCommand(
+            var result =  await mediator.Send(new CreateQuizCommand(
                 request.DiplomaId,
                 request.Title,
                 request.Instructions,
@@ -31,9 +31,11 @@ namespace exam_system.Features.Quizzes.AdminCreateQuiz.Handlers {
                 request.EndDate
                 ));
             if (!result.Success) {
-                throw new InvalidOperationException(result.Message);
+                return RequestResponse<Guid>.Fail(result.Message, StatusCodes.Status417ExpectationFailed);
+
+
             }
-            return RequestResponse<bool>.Ok(true, result.Message);
+            return RequestResponse<Guid>.Ok(result.Data, result.Message);
         }
     }
 }

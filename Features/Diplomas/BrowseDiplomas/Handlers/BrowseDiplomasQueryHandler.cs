@@ -36,8 +36,8 @@ namespace exam_system.Features.Diplomas.BrowseDiplomas.Handlers
                                        Description = d.Description,
                                        TotalQuizzes = d.Quizzes.Count(q => !q.IsDeleted && q.Status == QuizStatus.Published),
                                        // if this number related to current user i must edit this part to count only the quizzes that the current user has completed
-                                       CompletedQuizzes = d.Quizzes.Count(q => !q.IsDeleted && q.Status == QuizStatus.Published
-                                                                                            && q.Attempts.Any(a => !a.IsDeleted))
+                                       CompletedQuizzes = d.Quizzes.Count(q => !q.IsDeleted && q.Status == QuizStatus.Published 
+                                                                                            && q.Attempts.Any(a => !a.IsDeleted ))
                                    }).ToListAsync(cancellationToken);
 
 

@@ -198,6 +198,13 @@ public class QuizAttemptConfiguration : IEntityTypeConfiguration<QuizAttempt>
             .HasForeignKey(a => a.StudentId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasIndex(x => new {
+            x.StudentId,
+            x.QuizId })
+            .IsUnique()
+            .HasFilter("[Status] = 1");
+
+
         builder.HasOne(a => a.Quiz)
             .WithMany(q => q.Attempts)
             .HasForeignKey(a => a.QuizId)
