@@ -2,6 +2,6 @@
 
 namespace exam_system.Features.Analytics.GetAdminDashboard.Queries
 {
-    public record GetTotalAttemptsQuery : IRequest<int>;
+    public record GetTotalAttemptsQuery : IRequest<double>;
     
 }
