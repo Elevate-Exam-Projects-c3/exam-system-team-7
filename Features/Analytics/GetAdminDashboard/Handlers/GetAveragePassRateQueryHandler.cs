@@ -7,16 +7,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace exam_system.Features.Analytics.GetAdminDashboard.Handlers
 {
-    public class GetAveragePassRateQueryHandler : IRequestHandler<GetAveragePassRateQuery, float>
+    public class GetAveragePassRateQueryHandler : IRequestHandler<GetAveragePassRateQuery, double>
     {
         private readonly IGenericRepository<QuizAttempt> _genericRepository;
         public GetAveragePassRateQueryHandler(IGenericRepository<QuizAttempt> genericRepository)
         {
             _genericRepository = genericRepository;
         }
-        public async Task<float> Handle(GetAveragePassRateQuery request, CancellationToken cancellationToken)
+        public async Task<double> Handle(GetAveragePassRateQuery request, CancellationToken cancellationToken)
         {
-           var totalAttepts= await _genericRepository.GetAll()
+           var totalAttepts= await _genericRepository.GetAll().AsNoTracking()
                 .Where(e => e.Status == AttemptStatus.Submitted)
                 .CountAsync();
             if (totalAttepts == 0)

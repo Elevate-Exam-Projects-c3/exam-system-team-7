@@ -7,16 +7,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace exam_system.Features.Analytics.GetAdminDashboard.Handlers
 {
-    public class GetTotalAttemptsQueryHandler : IRequestHandler<GetTotalAttemptsQuery, int>
+    public class GetTotalAttemptsQueryHandler : IRequestHandler<GetTotalAttemptsQuery, double>
     {
         private readonly IGenericRepository<QuizAttempt> _genericRepository;
         public GetTotalAttemptsQueryHandler(IGenericRepository<QuizAttempt> genericRepository) 
         {
             _genericRepository = genericRepository;
         }
-        public async Task<int> Handle(GetTotalAttemptsQuery request, CancellationToken cancellationToken)
+        public async Task<double> Handle(GetTotalAttemptsQuery request, CancellationToken cancellationToken)
         {
-          int result = await _genericRepository.GetAll().Where(e => e.Status == AttemptStatus.Submitted).CountAsync();
+          int result = await _genericRepository.GetAll().AsNoTracking().Where(e => e.Status == AttemptStatus.Submitted).CountAsync();
             return result;
         }
     }

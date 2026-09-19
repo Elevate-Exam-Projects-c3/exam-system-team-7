@@ -13,11 +13,11 @@ namespace exam_system.Features.Analytics.GetAdminDashboard.Orchestrators
         }
         public async Task<AdminDashoardDto> Handle(AdminDashboardOrchestrator request, CancellationToken cancellationToken)
         {
-           int numberOfRegistredUsers= await _mediator.Send(new GetAllRegisteredUserNumberQuery());
-            int numberOfAllPublishedQuizes = await _mediator.Send(new GetAllQuizesNumberQuery());
-            int numberOfAllDiplomas = await _mediator.Send(new GetAllDiplomasNubmerQuery());
-            float averagePassRate = await _mediator.Send(new GetAveragePassRateQuery());
-            int totalNumberOfAttembts = await _mediator.Send(new GetTotalAttemptsQuery());
+           double numberOfRegistredUsers= await _mediator.Send(new GetAllRegisteredUserNumberQuery());
+            double numberOfAllPublishedQuizes = await _mediator.Send(new GetAllQuizesNumberQuery());
+            double numberOfAllDiplomas = await _mediator.Send(new GetAllDiplomasNubmerQuery());
+            double averagePassRate = await _mediator.Send(new GetAveragePassRateQuery());
+            double totalNumberOfAttembts = await _mediator.Send(new GetTotalAttemptsQuery());
             return new AdminDashoardDto()
             {
                 TotalRegistredUsers = numberOfRegistredUsers,

@@ -6,16 +6,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace exam_system.Features.Analytics.GetAdminDashboard.Handlers
 {
-    public class GetAllDiplomasNubmerQueryHandler : IRequestHandler<GetAllDiplomasNubmerQuery, int>
+    public class GetAllDiplomasNubmerQueryHandler : IRequestHandler<GetAllDiplomasNubmerQuery, double>
     {
         private readonly IGenericRepository<Diploma> _genericRepository;
         public GetAllDiplomasNubmerQueryHandler(IGenericRepository<Diploma> genericRepository)
         {
             _genericRepository = genericRepository;
         }
-        public async Task<int> Handle(GetAllDiplomasNubmerQuery request, CancellationToken cancellationToken)
+        public async Task<double> Handle(GetAllDiplomasNubmerQuery request, CancellationToken cancellationToken)
         {
-          int numberOfAllDiplomas= await _genericRepository.GetAll().Where(e => e.IsDeleted == false).CountAsync();
+          int numberOfAllDiplomas= await _genericRepository.GetAll().AsNoTracking().Where(e => e.IsDeleted == false).CountAsync();
             return numberOfAllDiplomas;
         }
     }
