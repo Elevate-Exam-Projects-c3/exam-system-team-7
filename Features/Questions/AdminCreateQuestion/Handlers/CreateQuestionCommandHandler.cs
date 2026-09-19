@@ -16,7 +16,6 @@ namespace exam_system.Features.Questions.AdminCreateQuestion.Handlers {
         public async Task<RequestResponse<Guid>> Handle(CreateQuestionCommand request, CancellationToken cancellationToken) {
 
             var question = new Question {
-                Id = Guid.NewGuid(),
                 QuizId = request.QuizId,
                 Text = request.Text.Trim(),
                 Explanation = request.Explanation?.Trim(),
