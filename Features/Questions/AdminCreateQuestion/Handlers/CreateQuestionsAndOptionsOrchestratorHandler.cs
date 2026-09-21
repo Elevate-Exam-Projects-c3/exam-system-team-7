@@ -7,7 +7,7 @@ using exam_system.Persistence.DataAccess;
 using MediatR;
 
 namespace exam_system.Features.Questions.AdminCreateQuestion.Handlers {
-    public class CreateQuestionsAndOptionsOrchestratorHandler : IRequestHandler<CreateQuestionsAndOptionsOrchestrator, RequestResponse<bool>> {
+    public class CreateQuestionsAndOptionsOrchestratorHandler : IRequestHandler<CreateQuestionsAndOptionsOrchestrator, RequestResponse<Guid>> {
 
         private readonly IMediator mediator;
         private readonly IUnitOfWork unitOfWork;
@@ -17,7 +17,7 @@ namespace exam_system.Features.Questions.AdminCreateQuestion.Handlers {
         }
      
 
-        public async Task<RequestResponse<bool>> Handle(CreateQuestionsAndOptionsOrchestrator request, CancellationToken cancellationToken) {
+        public async Task<RequestResponse<Guid>> Handle(CreateQuestionsAndOptionsOrchestrator request, CancellationToken cancellationToken) {
 
             await unitOfWork.BeginTransactionAsync();
 
@@ -27,7 +27,7 @@ namespace exam_system.Features.Questions.AdminCreateQuestion.Handlers {
 
                 if (!quiz.Data) {
                     await unitOfWork.RollbackTransactionAsync();
-                    return RequestResponse<bool>.Fail(quiz.Message, StatusCodes.Status404NotFound);
+                    return RequestResponse<Guid>.Fail(quiz.Message, StatusCodes.Status404NotFound);
                 }
 
                 var question = await mediator.Send(new CreateQuestionCommand(
@@ -36,35 +36,34 @@ namespace exam_system.Features.Questions.AdminCreateQuestion.Handlers {
 
                 if (!question.Success) {
                     await unitOfWork.RollbackTransactionAsync();
-                    return RequestResponse<bool>.Fail(question.Message, StatusCodes.Status417ExpectationFailed);
+                    return RequestResponse<Guid>.Fail(question.Message, StatusCodes.Status417ExpectationFailed);
                 }
 
                 var questionId = question.Data;
 
-                foreach (var option in request.Options) {
-                    var optionResult = await mediator.Send(new CreateOptionsCommand(questionId, option.OptionText, option.IsCorrect), cancellationToken);
+               var optionResult = await mediator.Send(new CreateOptionsCommand(questionId,request.Options), cancellationToken);
 
-                    if (!optionResult.Success) {
+               if (!optionResult.Success) {
                         await unitOfWork.RollbackTransactionAsync();
-                        return RequestResponse<bool>.Fail(optionResult.Message, optionResult.StatusCode);
+                        return RequestResponse<Guid>.Fail(optionResult.Message, optionResult.StatusCode);
                     }
-                }
+                
 
               var result = await unitOfWork.SaveChangesAsync();
 
                 if (result <= 0) {
                     await unitOfWork.RollbackTransactionAsync();
-                    return RequestResponse<bool>.Fail("Fail to save Questions and Options.", StatusCodes.Status500InternalServerError );
+                    return RequestResponse<Guid>.Fail("Fail to save Questions and Options.", StatusCodes.Status500InternalServerError );
                 }
 
               await unitOfWork.CommitTransactionAsync();
 
-                return RequestResponse<bool>.Created(true,"Question and options created successfully.");
+                return RequestResponse<Guid>.Created(question.Data,"Question and options created successfully.");
           
             } catch {
 
                 await unitOfWork.RollbackTransactionAsync();
-                return RequestResponse<bool>.Fail("Fail to save Questions and Options");
+                return RequestResponse<Guid>.Fail("Fail to save Questions and Options");
 
             }
         }

@@ -68,7 +68,9 @@ namespace exam_system.Migrations
 
                     b.HasIndex("QuizId");
 
-                    b.HasIndex("StudentId", "QuizId");
+                    b.HasIndex("StudentId", "QuizId")
+                        .IsUnique()
+                        .HasFilter("[Status] = 1");
 
                     b.ToTable("QuizAttempts", (string)null);
                 });
@@ -535,7 +537,9 @@ namespace exam_system.Migrations
                         .HasColumnType("int");
 
                     b.Property<int?>("PassScore")
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(60);
 
                     b.Property<DateTime?>("PublishedAt")
                         .HasColumnType("datetime2");
@@ -544,7 +548,9 @@ namespace exam_system.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<int>("Status")
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
 
                     b.Property<string>("Title")
                         .IsRequired()
