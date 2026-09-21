@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace exam_system.Features.Attempts.Controllers
 {
+    [ApiController]
     public class AttemptController : Controller
     {
         private readonly IMediator _mediator;
