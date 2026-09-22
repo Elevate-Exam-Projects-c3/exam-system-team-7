@@ -65,6 +65,9 @@ builder.Services
         };
     });
 
+// Authorization policies ([Authorize(Roles = "...")]) read the role claim.
+builder.Services.AddAuthorization();
+
 // Rate limiting
 builder.Services.AddRateLimiter(options =>
 {
@@ -88,6 +91,9 @@ builder.Services.AddHostedService<QuizAttemptTimeoutBackgroundService>();
 var app = builder.Build();
 
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
+
+// Uniform 403 body: authorization failures return the standard RequestResponse shape.
+app.UseMiddleware<ForbiddenResponseMiddleware>();
 
 using (var scope = app.Services.CreateScope())
 {
