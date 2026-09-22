@@ -33,6 +33,9 @@ builder.Services.AddMediatR(typeof(Program).Assembly);
 // Register all validators
 builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
+// FluentValidation pipeline: every MediatR Send() passes through ValidationBehavior first (Decorator pattern)
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+
 
 // Password hashing via bcrypt
 builder.Services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
