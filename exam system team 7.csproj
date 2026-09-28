@@ -5,6 +5,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>exam_system</RootNamespace>
+    <!-- Keep the integration-test project's generated obj/bin files out of this project's compile globs. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);exam system team 7.Tests\**</DefaultItemExcludes>
   </PropertyGroup>
 
   <ItemGroup>

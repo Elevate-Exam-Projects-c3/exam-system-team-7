@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="exam system team 7.csproj" />
+  <Project Path="exam system team 7.Tests/exam system team 7.Tests.csproj" />
 </Solution>
