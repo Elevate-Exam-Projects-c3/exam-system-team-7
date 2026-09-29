@@ -43,9 +43,15 @@ builder.Services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
 // OTP generation and email delivery
 builder.Services.AddSingleton<IOtpGenerator, RandomOtpGenerator>();
 
-// SMTP email delivery via MailKit
+// SMTP email delivery via MailKit, wrapped with retry/backoff (EXAM-113):
+// the ResilientEmailSender Decorator retries transient provider failures
+// before the ultimate failure reaches the flow.
 builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection(SmtpOptions.SectionName));
-builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();
+builder.Services.AddSingleton<SmtpEmailSender>();
+builder.Services.AddSingleton<IEmailSender>(sp =>
+    new ResilientEmailSender(
+        sp.GetRequiredService<SmtpEmailSender>(),
+        sp.GetRequiredService<ILogger<ResilientEmailSender>>()));
 
 // JWT authentication
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));

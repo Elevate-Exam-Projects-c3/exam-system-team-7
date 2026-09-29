@@ -16,13 +16,27 @@ public class SmtpEmailSender : IEmailSender
         _logger = logger;
     }
 
-    public async Task SendEmailAsync(string to, string subject, string body, CancellationToken cancellationToken)
+    public Task SendEmailAsync(string to, string subject, string body, CancellationToken cancellationToken)
+        => SendCoreAsync(to, subject, body, htmlBody: null, cancellationToken);
+
+    public Task SendEmailAsync(string to, string subject, string body, string htmlBody, CancellationToken cancellationToken)
+        => SendCoreAsync(to, subject, body, htmlBody, cancellationToken);
+
+    private async Task SendCoreAsync(string to, string subject, string body, string? htmlBody, CancellationToken cancellationToken)
     {
         var message = new MimeMessage();
         message.From.Add(MailboxAddress.Parse(_options.From));
         message.To.Add(MailboxAddress.Parse(to));
         message.Subject = subject;
-        message.Body = new TextPart("plain") { Text = body };
+
+        // multipart/alternative (EXAM-113): modern clients render the HTML
+        // part; older ones fall back to the plain text.
+        var bodyBuilder = new BodyBuilder { TextBody = body };
+        if (htmlBody is not null)
+        {
+            bodyBuilder.HtmlBody = htmlBody;
+        }
+        message.Body = bodyBuilder.ToMessageBody();
 
         using var client = new MailKit.Net.Smtp.SmtpClient();
         await client.ConnectAsync(_options.Host, _options.Port, SecureSocketOptions.StartTls, cancellationToken);

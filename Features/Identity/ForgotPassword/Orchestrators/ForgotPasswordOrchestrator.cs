@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.Extensions.Logging;
 using exam_system.Features.Identity.ForgotPassword.Commands;
 using exam_system.Features.Identity.ForgotPassword.Notifications;
 using exam_system.Features.Identity.ForgotPassword.Queries;
@@ -21,17 +22,20 @@ public class ForgotPasswordOrchestrator : IRequestHandler<ForgotPasswordCommand,
     private readonly IUnitOfWork _unitOfWork;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IOtpGenerator _otpGenerator;
+    private readonly ILogger<ForgotPasswordOrchestrator> _logger;
 
     public ForgotPasswordOrchestrator(
         IMediator mediator,
         IUnitOfWork unitOfWork,
         IPasswordHasher passwordHasher,
-        IOtpGenerator otpGenerator)
+        IOtpGenerator otpGenerator,
+        ILogger<ForgotPasswordOrchestrator> logger)
     {
         _mediator = mediator;
         _unitOfWork = unitOfWork;
         _passwordHasher = passwordHasher;
         _otpGenerator = otpGenerator;
+        _logger = logger;
     }
 
     public async Task<RequestResponse> Handle(ForgotPasswordCommand request, CancellationToken cancellationToken)
@@ -86,10 +90,32 @@ public class ForgotPasswordOrchestrator : IRequestHandler<ForgotPasswordCommand,
             await _unitOfWork.CommitTransactionAsync();
             committed = true;
 
-            // The email goes out only after a successful commit.
-            await _mediator.Publish(
-                new PasswordResetOtpRequestedNotification(user.Id, normalizedEmail, plainOtp),
-                cancellationToken);
+            // The email goes out only after a successful commit — and its
+            // ULTIMATE failure (retries exhausted inside the ResilientEmailSender)
+            // answers the client with ONE generic message: zero provider details
+            // (EXAM-113). The committed row expires on its own, so a retry
+            // after the cooldown starts clean.
+            try
+            {
+                await _mediator.Publish(
+                    new PasswordResetOtpRequestedNotification(
+                        user.Id,
+                        normalizedEmail,
+                        plainOtp,
+                        OtpLifetimeMinutes),
+                    cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Password-reset OTP email ultimately failed for {Email}",
+                    normalizedEmail);
+
+                return RequestResponse.Fail(
+                    "We could not send the email right now. Please try again shortly.",
+                    500);
+            }
 
             return RequestResponse.Ok(neutralMessage);
         }

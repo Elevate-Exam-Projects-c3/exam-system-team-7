@@ -3,8 +3,8 @@ using exam_system.Features.Identity.Shared;
 
 namespace exam_system.Features.Identity.ForgotPassword.Notifications;
 
-// Emails the password-reset code; only knows IEmailSender, so swapping the
-// sender never touches the flow (templating + retry arrive with EXAM-113).
+// Emails the password-reset code via the shared template; only knows
+// IEmailSender, so swapping the sender never touches the flow.
 public class PasswordResetOtpRequestedNotificationHandler
     : INotificationHandler<PasswordResetOtpRequestedNotification>
 {
@@ -17,10 +17,13 @@ public class PasswordResetOtpRequestedNotificationHandler
 
     public Task Handle(PasswordResetOtpRequestedNotification notification, CancellationToken cancellationToken)
     {
+        var template = new PasswordResetOtpEmailTemplate(notification.PlainOtp, notification.LifetimeMinutes);
+
         return _emailSender.SendEmailAsync(
             notification.Email,
-            "Reset your password",
-            $"Your password reset code is: {notification.PlainOtp}. It expires in 10 minutes.",
+            template.Subject,
+            template.PlainBody,
+            template.HtmlBody,
             cancellationToken);
     }
 }
