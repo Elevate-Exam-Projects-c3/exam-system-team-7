@@ -1,6 +1,6 @@
 using exam_system.Features.Identity.Shared;
 
-namespace exam_system.Features.Identity.ForgotPassword.Notifications;
+namespace exam_system.Features.Identity.ForgotPassword.Emails;
 
 // The password-reset email: only the variable pieces live here — the
 // branded shell comes from EmailTemplateBase.

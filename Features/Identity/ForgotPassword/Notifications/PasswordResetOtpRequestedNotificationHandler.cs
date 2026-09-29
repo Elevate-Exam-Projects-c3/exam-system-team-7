@@ -1,4 +1,5 @@
 using MediatR;
+using exam_system.Features.Identity.ForgotPassword.Emails;
 using exam_system.Features.Identity.Shared;
 
 namespace exam_system.Features.Identity.ForgotPassword.Notifications;
