@@ -1,11 +1,11 @@
 using MediatR;
-using exam_system.Features.Identity.Register.Commands;
 using exam_system.Features.Identity.Register.Queries;
 using exam_system.Features.Identity.Shared;
+using exam_system.Features.Identity.VerifyEmailOtp.Commands;
 using exam_system.Features.Shared;
 using exam_system.Persistence.DataAccess;
 
-namespace exam_system.Features.Identity.Register.Orchestrators;
+namespace exam_system.Features.Identity.VerifyEmailOtp.Orchestrators;
 
 // OTP verification: check the latest unused code, consume it and activate
 // the user in one transaction. Wrong codes count toward the 5-attempt lock.

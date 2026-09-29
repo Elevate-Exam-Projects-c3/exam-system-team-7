@@ -19,4 +19,8 @@ public class DevEmailSender : IEmailSender
 
         return Task.CompletedTask;
     }
+
+    // Templated overload (EXAM-113): the console only needs the plain part.
+    public Task SendEmailAsync(string to, string subject, string body, string htmlBody, CancellationToken cancellationToken)
+        => SendEmailAsync(to, subject, body, cancellationToken);
 }

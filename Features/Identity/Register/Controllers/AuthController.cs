@@ -5,7 +5,7 @@ using exam_system.Features.Identity.Register.Orchestrators;
 
 namespace exam_system.Features.Identity.Register.Controllers;
 
-// Auth endpoints for the register flow: register / verify-otp / resend-otp.
+// Auth endpoints for the register flow: register + resend-otp.
 [ApiController]
 [Route("api/auth")]
 public class AuthController : ControllerBase
@@ -21,15 +21,6 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     [EnableRateLimiting("auth")]
     public async Task<IActionResult> Register([FromBody] RegisterUserCommand command, CancellationToken cancellationToken)
-    {
-        var response = await _mediator.Send(command, cancellationToken);
-        return StatusCode(response.StatusCode, response);
-    }
-
-    // POST /api/auth/verify-otp — body: { email, code }
-    [HttpPost("verify-otp")]
-    [EnableRateLimiting("auth")]
-    public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpCommand command, CancellationToken cancellationToken)
     {
         var response = await _mediator.Send(command, cancellationToken);
         return StatusCode(response.StatusCode, response);

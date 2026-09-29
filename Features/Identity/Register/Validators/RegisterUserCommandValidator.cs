@@ -1,6 +1,6 @@
-using System.Text;
 using FluentValidation;
 using exam_system.Features.Identity.Register.Orchestrators;
+using exam_system.Features.Identity.Shared;
 
 namespace exam_system.Features.Identity.Register.Validators;
 
@@ -17,15 +17,9 @@ public class RegisterUserCommandValidator : AbstractValidator<RegisterUserComman
             .NotEmpty().WithMessage("Email is required.")
             .EmailAddress().WithMessage("Email format is not valid.");
 
+        // The register-grade rules live in ONE shared extension — the
+        // password-reset flow (EXAM-6) reuses the exact same rules.
         RuleFor(x => x.Password)
-            .NotEmpty().WithMessage("Password is required.")
-            .MinimumLength(8).WithMessage("Password must be at least 8 characters.")
-            // bcrypt only hashes the first 72 bytes of a password.
-            .Must(p => p is null || Encoding.UTF8.GetByteCount(p) <= 72)
-            .WithMessage("Password must not exceed 72 bytes (bcrypt input limit).")
-            .Matches("[A-Z]").WithMessage("Password must contain at least one uppercase letter.")
-            .Matches("[a-z]").WithMessage("Password must contain at least one lowercase letter.")
-            .Matches("[0-9]").WithMessage("Password must contain at least one digit.")
-            .Matches("[^a-zA-Z0-9]").WithMessage("Password must contain at least one special character.");
+            .RegisterPasswordRules();
     }
 }
