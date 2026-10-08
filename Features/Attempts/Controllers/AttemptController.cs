@@ -1,11 +1,13 @@
 ﻿using exam_system.Dtos.Attempts;
 using exam_system.Dtos.Quizes;
+using exam_system.Common.Enums;
 using exam_system.Features.Attempts.CheckRemainingTime.Orchestrators;
 using exam_system.Features.Attempts.StartAttempt.Orchestrators;
 using exam_system.Features.Shared;
 using exam_system.ViewModels.Options;
 using exam_system.ViewModels.Questions;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace exam_system.Features.Attempts.Controllers {
@@ -21,7 +23,7 @@ namespace exam_system.Features.Attempts.Controllers {
 
 
         [HttpPost("{quizId:guid}/start-quiz")]
-        //[Authorize(Roles = nameof(UserRole.Student))]
+        [Authorize(Roles = nameof(UserRole.Student))]
         public async Task<ActionResult<EndpointResponse<StartQuizViewModel>>> StartQuiz(Guid quizId,CancellationToken cancellationToken) {
             var studentId = Guid.Parse("AAAAAAAA-1111-1111-1111-AAAAAAAAAAAA");
 

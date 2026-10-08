@@ -1,7 +1,9 @@
-﻿using exam_system.Features.Diplomas.GetStudentDashboard.Orchestrators;
+﻿using exam_system.Common.Enums;
+using exam_system.Features.Diplomas.GetStudentDashboard.Orchestrators;
 using exam_system.Features.Diplomas.GetStudentDashboard.Queries;
 using exam_system.ViewModels.Students;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace exam_system.Features.Diplomas.GetStudentDashboard.Controllers
@@ -16,6 +18,7 @@ namespace exam_system.Features.Diplomas.GetStudentDashboard.Controllers
             _mediator = mediator;
         }
         [HttpGet]
+        [Authorize(Roles = nameof(UserRole.Student))]
         public async Task<ActionResult<StudentsDashboardViewModel>> GetOverAllScore(Guid StudentId)
         {
           var studentDashBoard = await _mediator.Send(new StudentsDashBoardOrchestrator(StudentId));
