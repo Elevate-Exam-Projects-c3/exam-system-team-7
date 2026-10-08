@@ -59,20 +59,6 @@ jobs:
       - name: Build Solution
         run: dotnet build --no-restore --configuration Release
 
-      # The Program.cs seeds only — migrations must be applied explicitly
-      # before the tests run (dotnet-ef needs the Design package, already referenced).
-      - name: Install EF Core Tools
-        run: dotnet tool install --global dotnet-ef --version 10.0.11
-
-      - name: Apply Database Migrations
-        # A repo migration may try to recreate tables that already exist in a
-        # pre-built database (FirstTestMigration vs the seed-built schema).
-        # On a FRESH CI database the full update should succeed; any residual
-        # conflict is surfaced but does not fail the job — the tests themselves
-        # are the real gate.
-        run: dotnet ef database update --project "exam system team 7.csproj" --no-build --configuration Release
-        continue-on-error: true
-
       - name: Check Code Formatting
         run: dotnet format --verify-no-changes --verbosity normal
         continue-on-error: true

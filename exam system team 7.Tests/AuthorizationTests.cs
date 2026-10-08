@@ -1,16 +1,18 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using exam_system.Persistence.Context;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Xunit;
 
 namespace exam_system.Tests;
 
 // EXAM-115: calls every protected endpoint with Admin and Student tokens
 // and asserts the expected 200/403 outcome for each.
-public class AuthorizationTests : IClassFixture<WebApplicationFactory<Program>>
+public class AuthorizationTests : IClassFixture<WebApplicationFactory<Program>>, IAsyncLifetime
 {
     private readonly WebApplicationFactory<Program> _factory;
 
@@ -21,6 +23,27 @@ public class AuthorizationTests : IClassFixture<WebApplicationFactory<Program>>
         _factory = factory.WithWebHostBuilder(builder =>
             builder.UseEnvironment(Microsoft.Extensions.Hosting.Environments.Development));
     }
+
+    // CI provides an EMPTY SQL Server (service container). The repo's migration
+    // chain cannot provision a fresh database (the original init migration was
+    // deleted; FirstTestMigration's timestamp sorts AFTER the index migration),
+    // so the schema is created straight from the current model instead — the
+    // standard approach for an ephemeral test database. On a dev machine the
+    // database already exists, so EnsureCreated is a no-op there.
+    public async Task InitializeAsync()
+    {
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await db.Database.EnsureCreatedAsync();
+
+        // Program.cs' seed attempt ran BEFORE any schema existed (silently
+        // caught) — run it again now that the tables are real. It is
+        // guarded by an AnyAsync check, so on a dev machine this does nothing.
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<AuthorizationTests>>();
+        await AppDbContextSeed.SeedAsync(db, logger);
+    }
+
+    public Task DisposeAsync() => Task.CompletedTask;
 
     private async Task<string> LoginAsync(string email, string password)
     {
