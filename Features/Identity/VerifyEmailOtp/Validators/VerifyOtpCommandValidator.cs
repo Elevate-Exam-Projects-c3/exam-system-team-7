@@ -1,7 +1,7 @@
 using FluentValidation;
-using exam_system.Features.Identity.Register.Orchestrators;
+using exam_system.Features.Identity.VerifyEmailOtp.Orchestrators;
 
-namespace exam_system.Features.Identity.Register.Validators;
+namespace exam_system.Features.Identity.VerifyEmailOtp.Validators;
 
 // Email format + a 6-digit code; business rules live in the Orchestrator.
 public class VerifyOtpCommandValidator : AbstractValidator<VerifyOtpCommand>

@@ -1,6 +1,8 @@
-﻿using exam_system.Features.Analytics.GetAdminDashboard.Queries;
+﻿using exam_system.Common.Enums;
+using exam_system.Features.Analytics.GetAdminDashboard.Queries;
 using exam_system.ViewModels.Admin;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,6 +13,7 @@ namespace exam_system.Features.Analytics.GetAdminDashboard.Controllers
     public class AdminsController(IMediator mediator) : ControllerBase
     {
         [HttpGet]
+        [Authorize(Roles = nameof(UserRole.Admin))]
         public async Task<ActionResult<AdminDashboardViewModel>> GetDashboard()
         {
             

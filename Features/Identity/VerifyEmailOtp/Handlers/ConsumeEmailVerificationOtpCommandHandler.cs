@@ -1,10 +1,10 @@
 using MediatR;
 using exam_system.Domain.Entities.Identity;
-using exam_system.Features.Identity.Register.Commands;
+using exam_system.Features.Identity.VerifyEmailOtp.Commands;
 using exam_system.Features.Shared;
 using exam_system.Persistence.DataAccess;
 
-namespace exam_system.Features.Identity.Register.Handlers;
+namespace exam_system.Features.Identity.VerifyEmailOtp.Handlers;
 
 //flip ONE OtpCodes row to IsUsed=true.
 public class ConsumeEmailVerificationOtpCommandHandler

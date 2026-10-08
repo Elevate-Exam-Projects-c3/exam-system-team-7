@@ -25,7 +25,7 @@ namespace exam_system.Features.Quizzes.Controllers {
 
 
         [HttpPost]
-        // [Authorize(Roles = nameof(UserRole.Admin))]
+        [Authorize(Roles = nameof(UserRole.Admin))]
         public async Task<ActionResult<EndpointResponse<Guid>>> CreateQuiz([FromBody] CreateQuizViewModel createQuiz,CancellationToken cancellationToken) {
             try {
                 var result = await mediator.Send(
@@ -66,7 +66,7 @@ namespace exam_system.Features.Quizzes.Controllers {
 
     
         [HttpPut("{quizId:guid}")]
-        // [Authorize(Roles = nameof(UserRole.Admin))]
+        [Authorize(Roles = nameof(UserRole.Admin))]
         public async Task<ActionResult<EndpointResponse<Guid>>> UpdateQuiz(Guid quizId,[FromBody] UpdateQuizViewModel updateQuiz,CancellationToken cancellationToken) {
             try {
                 var command = new UpdateQuizCommand(
@@ -110,7 +110,7 @@ namespace exam_system.Features.Quizzes.Controllers {
         }
 
         [HttpDelete("{quizId:guid}")]
-        // [Authorize(Roles = nameof(UserRole.Admin))]
+        [Authorize(Roles = nameof(UserRole.Admin))]
         public async Task<ActionResult<EndpointResponse<bool>>> DeleteQuiz(Guid quizId, CancellationToken cancellationToken) {
             var result = await mediator.Send(new DeleteQuizCommand(quizId),cancellationToken);
 
@@ -118,7 +118,7 @@ namespace exam_system.Features.Quizzes.Controllers {
         }
 
         [HttpGet("/admin/quizzes/{quizId:guid}/publish-check")]
-        // [Authorize(Roles = nameof(UserRole.Admin))]
+        [Authorize(Roles = nameof(UserRole.Admin))]
         public async Task<ActionResult<EndpointResponse<QuizPublishCheckDto>>> GetPublishCheck(Guid quizId,CancellationToken cancellationToken) 
         {
             var result = await mediator.Send(new QuizPublishCheckListOrchestrator(quizId), cancellationToken);
@@ -127,7 +127,7 @@ namespace exam_system.Features.Quizzes.Controllers {
         }
 
         [HttpPatch("/admin/quizzes/{quizId:guid}/publish")]
-        // [Authorize(Roles = nameof(UserRole.Admin))]
+        [Authorize(Roles = nameof(UserRole.Admin))]
         public async Task<ActionResult<EndpointResponse<Guid>>> PublishQuiz(Guid quizId, CancellationToken cancellationToken) 
         {
             var result = await mediator.Send(new AdminPublishQuizOrchestrator(quizId), cancellationToken);

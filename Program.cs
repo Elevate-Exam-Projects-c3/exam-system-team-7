@@ -33,6 +33,9 @@ builder.Services.AddMediatR(typeof(Program).Assembly);
 // Register all validators
 builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
+// FluentValidation pipeline: every MediatR Send() passes through ValidationBehavior first (Decorator pattern)
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+
 
 // Password hashing via bcrypt
 builder.Services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
@@ -40,9 +43,15 @@ builder.Services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
 // OTP generation and email delivery
 builder.Services.AddSingleton<IOtpGenerator, RandomOtpGenerator>();
 
-// SMTP email delivery via MailKit
+// SMTP email delivery via MailKit, wrapped with retry/backoff (EXAM-113):
+// the ResilientEmailSender Decorator retries transient provider failures
+// before the ultimate failure reaches the flow.
 builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection(SmtpOptions.SectionName));
-builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();
+builder.Services.AddSingleton<SmtpEmailSender>();
+builder.Services.AddSingleton<IEmailSender>(sp =>
+    new ResilientEmailSender(
+        sp.GetRequiredService<SmtpEmailSender>(),
+        sp.GetRequiredService<ILogger<ResilientEmailSender>>()));
 
 // JWT authentication
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
@@ -64,6 +73,9 @@ builder.Services
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Key))
         };
     });
+
+// Authorization policies ([Authorize(Roles = "...")]) read the role claim.
+builder.Services.AddAuthorization();
 
 // Rate limiting
 builder.Services.AddRateLimiter(options =>
@@ -88,6 +100,9 @@ builder.Services.AddHostedService<QuizAttemptTimeoutBackgroundService>();
 var app = builder.Build();
 
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
+
+// Uniform 403 body: authorization failures return the standard RequestResponse shape.
+app.UseMiddleware<ForbiddenResponseMiddleware>();
 
 using (var scope = app.Services.CreateScope())
 {
@@ -124,3 +139,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+// Makes the implicit Program class visible to the integration-test project (WebApplicationFactory).
+public partial class Program;

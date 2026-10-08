@@ -33,7 +33,7 @@ namespace exam_system.Features.Diplomas.Controllers
         }
 
         [HttpPost]
-        //[Authorize(Roles = nameof(UserRole.Admin))]
+        [Authorize(Roles = nameof(UserRole.Admin))]
         public async Task<IActionResult> Create([FromBody] CreateDiplomaVM request,CancellationToken cancellationToken)
         {
             var result = await _mediator.Send(
@@ -49,7 +49,7 @@ namespace exam_system.Features.Diplomas.Controllers
 
 
         [HttpPut("{id:guid}")]
-        //[Authorize(Roles = nameof(UserRole.Admin))]
+        [Authorize(Roles = nameof(UserRole.Admin))]
         public async Task<IActionResult> Update(Guid id,[FromBody] UpdateDiplomaVM request,CancellationToken cancellationToken)
         {
             var result = await _mediator.Send(
@@ -65,7 +65,7 @@ namespace exam_system.Features.Diplomas.Controllers
 
 
         [HttpDelete("{id:guid}")]
-        //[Authorize(Roles = nameof(UserRole.Admin))]
+        [Authorize(Roles = nameof(UserRole.Admin))]
         public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
         {
             var result = await _mediator.Send(new DeleteDiplomaOrchestrator(id), cancellationToken);
@@ -78,7 +78,7 @@ namespace exam_system.Features.Diplomas.Controllers
         }
 
         [HttpGet("{id:guid}")]
-        //[Authorize(Roles = nameof(UserRole.Admin))]
+        [Authorize(Roles = nameof(UserRole.Admin))]
         public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
         {
             var result = await _mediator.Send(new GetDiplomaByIdQuery(id), cancellationToken);
@@ -90,7 +90,7 @@ namespace exam_system.Features.Diplomas.Controllers
 
 
         [HttpGet]
-        //[Authorize(Roles = nameof(UserRole.Student))]
+        [Authorize(Roles = nameof(UserRole.Student))]
         public async Task<IActionResult> Browse([FromQuery] BrowseDiplomasViewModel viewModel, CancellationToken cancellationToken)
         {
             var result = await _mediator.Send( new BrowseDiplomasQuery( viewModel.ToDto()),  cancellationToken);
@@ -102,7 +102,7 @@ namespace exam_system.Features.Diplomas.Controllers
 
 
         [HttpPost("{id:guid}/enroll")]
-        //[Authorize(Roles = nameof(UserRole.Student))]
+        [Authorize(Roles = nameof(UserRole.Student))]
         public async Task<IActionResult> Enroll(Guid id,CancellationToken cancellationToken)
         {
             var studentId = Guid.TryParse("CCCCCCCC-3333-3333-3333-CCCCCCCCCCCC", out var userId) ? userId : (Guid?)null;

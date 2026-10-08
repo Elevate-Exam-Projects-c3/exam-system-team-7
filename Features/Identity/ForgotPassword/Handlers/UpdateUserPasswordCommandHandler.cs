@@ -1,21 +1,20 @@
 using MediatR;
-using exam_system.Common.Enums;
 using exam_system.Domain.Entities.Identity;
-using exam_system.Features.Identity.Register.Commands;
+using exam_system.Features.Identity.ForgotPassword.Commands;
 using exam_system.Features.Shared;
 using exam_system.Persistence.DataAccess;
 
-namespace exam_system.Features.Identity.Register.Handlers;
+namespace exam_system.Features.Identity.ForgotPassword.Handlers;
 
-// activate one ApplicationUser — EmailConfirmed=true
-// and AccountStatus=Active (EXAM-104 success path).
-public class ActivateUserCommandHandler
-    : IRequestHandler<ActivateUserCommand, RequestResponse<Guid>>
+// ONE ApplicationUser: PasswordHash swap only (lockout columns untouched —
+// a 15-minute lockout expires on its own).
+public class UpdateUserPasswordCommandHandler
+    : IRequestHandler<UpdateUserPasswordCommand, RequestResponse>
 {
     private readonly IGenericRepository<ApplicationUser> _users;
     private readonly IUnitOfWork _unitOfWork;
 
-    public ActivateUserCommandHandler(
+    public UpdateUserPasswordCommandHandler(
         IGenericRepository<ApplicationUser> users,
         IUnitOfWork unitOfWork)
     {
@@ -23,16 +22,16 @@ public class ActivateUserCommandHandler
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<RequestResponse<Guid>> Handle(ActivateUserCommand request, CancellationToken cancellationToken)
+    public async Task<RequestResponse> Handle(UpdateUserPasswordCommand request, CancellationToken cancellationToken)
     {
         var user = await _users.GetByIdAsync(request.UserId)
             ?? throw new InvalidOperationException($"User {request.UserId} was not found.");
 
-        user.AccountStatus = AccountStatus.Active;
-        user.EmailConfirmed = true;
+        user.PasswordHash = request.PasswordHash;
+
         _users.Update(user);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return RequestResponse<Guid>.Ok(user.Id);
+        return RequestResponse.Ok("Password updated.");
     }
 }

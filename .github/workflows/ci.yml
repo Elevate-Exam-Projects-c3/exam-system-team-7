@@ -12,6 +12,30 @@ jobs:
     name: Build, Lint & Format Check
     runs-on: ubuntu-latest
 
+    # The integration tests hit a real database (real login + seeded users),
+    # so CI provides SQL Server as a service container.
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: 'Y'
+          MSSQL_SA_PASSWORD: 'CI_Only_Passw0rd!'
+          MSSQL_PID: 'Developer'
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P 'CI_Only_Passw0rd!' -Q 'SELECT 1' -b -o /dev/null"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      # Overrides appsettings via the ASP.NET Core config hierarchy — zero code change.
+      ConnectionStrings__DefaultConnection: 'Server=localhost,1433;Database=ExaminationSystem_Team7_Db;User Id=sa;Password=CI_Only_Passw0rd!;TrustServerCertificate=True;MultipleActiveResultSets=true'
+      # The test factory runs with Development (no "Jwt" section in appsettings.json) —
+      # the Jwt key is git-tracked in appsettings.Development.json for this learning project.
+      ASPNETCORE_ENVIRONMENT: 'Development'
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
