@@ -22,7 +22,8 @@ namespace exam_system.Features.Attempts.GetOldAttempt.Handlers {
                     Deadline = a.Deadline,
                     SubmittedAt = a.SubmittedAt,
                     Score = a.Score,
-                    Passed = a.Passed
+                    Passed = a.Passed,
+                    Status = a.Status
                 }).FirstOrDefaultAsync(cancellationToken);
 
             if (attempt == null) 

@@ -14,7 +14,7 @@ public class AppDbContext : DbContext
     {
     }
 
-    // Identity & Users
+    //Identity & Users
     public DbSet<ApplicationUser> Users => Set<ApplicationUser>();
     public DbSet<Student> Students => Set<Student>();
     public DbSet<EmailVerificationOtp> EmailVerificationOtps => Set<EmailVerificationOtp>();

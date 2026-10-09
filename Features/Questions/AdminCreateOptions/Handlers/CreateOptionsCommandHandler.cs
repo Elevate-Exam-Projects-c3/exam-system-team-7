@@ -5,7 +5,7 @@ using exam_system.Persistence.DataAccess;
 using MediatR;
 
 namespace exam_system.Features.Questions.AdminCreateOptions.Handlers {
-    public class CreateOptionsCommandHandler : IRequestHandler<CreateOptionsCommand, RequestResponse<Guid>> {
+    public class CreateOptionsCommandHandler : IRequestHandler<CreateOptionsCommand, RequestResponse<bool>> {
 
         private readonly IGenericRepository<QuestionOption> optionsRepository;
 
@@ -14,21 +14,24 @@ namespace exam_system.Features.Questions.AdminCreateOptions.Handlers {
         }
 
 
-        public async Task<RequestResponse<Guid>> Handle(CreateOptionsCommand request, CancellationToken cancellationToken) {
-
-            var newOption = new QuestionOption {
-
-                QuestionId = request.QuestionId,
-                OptionText = request.OptionText,
-                IsCorrect = request.IsCorrect,
-                CreatedAt = DateTime.UtcNow,
-                IsDeleted = false
-            };
-
-            await optionsRepository.AddAsync(newOption);
+        public async Task<RequestResponse<bool>> Handle(CreateOptionsCommand request, CancellationToken cancellationToken) {
 
 
-            return RequestResponse<Guid>.Created(newOption.Id, "Option created successfully.");
+            if (request.Options == null || request.Options.Count < 2) 
+                return RequestResponse<bool>.Fail("At least two options are required.",StatusCodes.Status400BadRequest);
+
+             var options = request.Options.Select(optionDto =>
+                new QuestionOption {
+                    QuestionId = request.questionId,
+                    OptionText = optionDto.OptionText.Trim(),
+                    IsCorrect = optionDto.IsCorrect,
+                }).ToList();
+
+
+            await optionsRepository.AddRangeAsync(options);
+
+
+            return RequestResponse<bool>.Created(true, "Option created successfully.");
         }
     }
 }
